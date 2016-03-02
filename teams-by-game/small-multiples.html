@@ -45,10 +45,6 @@ d3.csv("stats.csv", function(data) {
 
 function prepareData() {
 
-	dataset = dataset.filter(function(d) { 
-		return d.date >= 20151201;
-	});
-
 	// Nest data by team, then by game - each game will have multiple score situations
 	dataset = d3.nest()
 		.key(function(d) { return d.team; })
