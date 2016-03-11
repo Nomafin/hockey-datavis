@@ -14,9 +14,9 @@
 </body>
 <script>
 
-var teams = ["away", "home"];		// [home, away]
-var teamNames = ["pit", "wsh"]; 	// [home, away]
-var teamColours = ["blue", "red"];	// [home, away]
+var teams = ["away", "home"];
+var teamNames = ["car", "bos"];
+var teamColours = ["red", "blue"];
 
 var shiftData;
 var eventData;
@@ -389,7 +389,7 @@ function appendSvg() {
 				var totalDelay = 0;
 				var clockPeriod = i + 1;
 				for (var j = 1; j < clockPeriod; j++) {
-					totalDelay += periodDurs[j];
+					totalDelay += periodDurs[j - 1];
 				}
 				return (totalDelay * 1000) / 200;
 			})
