@@ -14,7 +14,7 @@
 </body>
 <script>
 
-	var jsonUrl = "http://localhost:5000/api/lines?team=wsh&season=20152016";
+	var jsonUrl = "http://localhost:5000/api/lines?team=car&season=20152016";
 	var lineData;
 	var playerData;
 
@@ -189,7 +189,7 @@
 			.attr("class", "label")
 			.attr("x", -maM.left + 10)
 			.attr("y", function(d) { return maY(d.id); })
-			.text(function(d) { return d.lastName; });
+			.text(function(d) { return d.firstName.substring(0, 1) + ". " + d.lastName; });
 
 		var groups = matrix.selectAll("g.combo")
 			.data(lineData);
