@@ -14,7 +14,7 @@
 </body>
 <script>
 
-	var jsonUrl = "http://localhost:5000/api/lines?team=car&season=20152016";
+	var jsonUrl = "http://localhost:5000/api/lines?team=stl&season=20152016";
 	var lineData;
 	var playerData;
 
@@ -78,7 +78,7 @@
 		//
 
 		//var extent = d3.extent(lineData, function(d) { return d.cfAdjPct; });
-		var extent = [0.4, 0.6];
+		var extent = [0.4, 0.65];
 		var x = d3.scale.linear()
 			.domain(extent)
 			.range([0, scW]);
@@ -102,7 +102,7 @@
 			.attr("y2", scY.range()[0]);
 
 		// x-axis ticks
-		var tickData = [0.4, 0.45, 0.5, 0.55, 0.6];
+		var tickData = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65];
 		var ticks = scatter.selectAll("line.tick.x-axis")
 			.data(tickData);
 		ticks.enter().append("line")

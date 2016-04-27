@@ -1,10 +1,5 @@
-html,
-body {
-	font-size: 0;
-}
-
 svg {
-	display: table;
+	display: block;
 	font-family: sans-serif;
 	font-size: 12px;
 	margin: 0;
