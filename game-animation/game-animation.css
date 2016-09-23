@@ -1,39 +1,39 @@
+svg {
+	background: #263238;
+}
 .net.blue {
-	fill: blue;
+	fill: #1DE9B6;
 }
 .net.red {
-	fill: red;
+	fill: #FF1744;
 }
-.barrier-goalie.blue {
-	stroke: blue;
-}
-.barrier-goalie.red {
-	stroke: red;
-}
-.barrier-skater.blue {
-	stroke: blue;
-}
-.barrier-skater.red {
-	stroke: red;
-}
-.shot.red {
-	fill: none;
-	stroke: red;
-	stroke-opacity: 0.3;
-}
+.barrier-goalie.blue,
+.barrier-skater.blue,
 .shot.blue {
-	fill: none;
-	stroke: blue;
-	stroke-opacity: 0.3;
+	stroke: #1DE9B6;
 }
-.shot {
-	stroke-dasharray: 400;
-	stroke-dashoffset: 400;
-	animation: dash 5s linear forwards;
+.barrier-goalie.red,
+.barrier-skater.red,
+.shot.red {
+	stroke: #FF1744;
 }
 
+/*
+*
+* Shot styling and animation
+*
+*/
+
+.shot {
+	fill: none;
+	stroke-dasharray: 260;
+	stroke-dashoffset: 260;
+}
+.shot.animated-dashoffset {
+	animation: dash 2s linear forwards;
+}
 @keyframes dash {
 	to {
-	stroke-dashoffset: 0;
+		stroke-dashoffset: 0;
 	}
 }
