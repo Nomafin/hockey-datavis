@@ -1,12 +1,6 @@
 svg {
 	background: #2B3034;
 }
-circle.net.blue {
-	fill: #18A0E6;
-}
-circle.net.red {
-	fill: #F35747;
-}
 line.barrier-goalie.blue,
 line.barrier-skater.blue,
 path.shot.blue {
@@ -25,6 +19,16 @@ circle.shot.blue {
 circle.shot.red {
 	fill: #F35747;
 	fill-opacity: 0.6;
+}
+path.net.red {
+	stroke-width: 2px;
+	stroke: #F35747;
+	fill: #F35747;
+}
+path.net.blue {
+	stroke-width: 2px;
+	stroke: #18A0E6;
+	fill: #18A0E6;
 }
 /*
 *

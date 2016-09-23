@@ -30,10 +30,10 @@ var periodDurations;
 
 var h = 120;
 var w = 240;
-var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+var margin = { top: 0, right: 10, bottom: 0, left: 10 };
 var barrierL = 60;						// Length of goalie and skater barriers
 var y = h/2;							// Center of nets, goalie barriers, skater barriers
-var netX = 20;							// Net's x-offset from svg edges
+var netX = 25;							// Net's x-offset from svg edges
 var goalieX = 40;						// Goalie barrier's x-offset from svg edges
 var skaterX = 55;						// Skater barrier's x-offset from svg edges
 var colour = ["red", "blue"];			// Colour class for away/home
@@ -147,9 +147,26 @@ function appendSvg() {
 		.attr("class", "shots");
 
 	// Append nets
-	svg.selectAll(".net")
+	// svg.selectAll(".net")
+	// 	.data(teamData)
+	// 	.enter().append("circle")
+	// 		.attr("class", function(d, i) {
+	// 			if (i === 0) {
+	// 				return "net away " + d.colour;
+	// 			} else {
+	// 				return "net home " + d.colour;
+	// 			}
+	// 		})
+	// 		.attr("r", 5)
+	// 		.attr("cx", function(d) {
+	// 			return d.nx;
+	// 		})
+	// 		.attr("cy", function(d) {
+	// 			return d.y;
+	// 		});
+	svg.selectAll("net")
 		.data(teamData)
-		.enter().append("circle")
+		.enter().append("path")
 			.attr("class", function(d, i) {
 				if (i === 0) {
 					return "net away " + d.colour;
@@ -157,12 +174,25 @@ function appendSvg() {
 					return "net home " + d.colour;
 				}
 			})
-			.attr("r", 5)
-			.attr("cx", function(d) {
-				return d.nx;
+			.attr("d", function(d, i) {
+				if (i === 0) {
+					return "M" + teamData[0].nx + " " + y
+						+ " L" + (teamData[0].nx - 12) + " " + (y - 8)
+						+ " L" + (teamData[0].nx - 12) + " " + (y + 8)
+						+ "Z";
+				} else {
+					return "M" + teamData[1].nx + " " + y
+						+ " L" + (teamData[1].nx + 12) + " " + (y - 8)
+						+ " L" + (teamData[1].nx + 12) + " " + (y + 8)
+						+ "Z";				
+				}
 			})
-			.attr("cy", function(d) {
-				return d.y;
+			.attr("transform", function(d, i) {
+				if (i === 0) {
+					return "translate(-5, 0)";
+				} else {
+					return "translate(5, 0)";
+				}
 			});
 
 	//
@@ -187,7 +217,7 @@ function appendSvg() {
 				end[0] = teamData[1].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [w, Math.random() * h];
+				end = [w + margin.right, Math.random() * h];
 			}
 		} else {
 			start = [teamData[1].nx, y];
@@ -200,7 +230,7 @@ function appendSvg() {
 				end[0] = teamData[0].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [0, Math.random() * h];
+				end = [0 - margin.left, Math.random() * h];
 			}
 		}
 		
