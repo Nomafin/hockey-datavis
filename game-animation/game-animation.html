@@ -7,11 +7,22 @@
 	<script src="../d3.v4.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="game-animation.css">
 </head>
-<body>
+<body style="padding: 40px;">
+	<svg style="display: table; outline: 1px solid #616161;"></svg>
+	<button style="margin: 20px 0; display: none;" onclick="animateGame();">Start animation</button>
 </body>
 <script>
-var gameId = 2016060108;
-var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
+
+//
+// Data variables
+//
+
+// var gameId = 2016060108;
+// var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
+var jsonUrl = "live.json";
+var teamData;
+var shotData;
+var periodDurations;
 
 //
 // Layout variables
@@ -19,11 +30,12 @@ var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live
 
 var h = 120;
 var w = 240;
-var ptNet = [[20, w/2], [220, w/2]]; // Coordinates for away/home nets
-
-var teamData;
-var shotData;
-var periodDurations;
+var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+var barrierL = 60;						// Length of goalie and skater barriers
+var netX = 20;							// Net's x-offset from svg edges
+var goalieX = 40;						// Goalie barrier's x-offset from svg edges
+var skaterX = 55;						// Skater barrier's x-offset from svg edges
+var colour = ["red", "blue"];			// Colour class for away/home
 
 //
 // Prepare data
@@ -34,10 +46,23 @@ d3.json(jsonUrl, function(error, json) {
 		console.log(error);
 		return;
 	}
-	console.log(json);
 
 	// Store team and shot data
-	teamData = [json.gameData.teams.away.abbreviation.toLowerCase(), json.gameData.teams.home.abbreviation.toLowerCase()];
+	teamData = [{
+		abbr: json.gameData.teams.away.abbreviation.toLowerCase(),
+		colour: colour[0],
+		nx: netX,
+		gx: goalieX,
+		sx: skaterX,
+		y: h/2
+	}, {
+		abbr: json.gameData.teams.home.abbreviation.toLowerCase(),
+		colour: colour[1],
+		nx: w - netX,
+		gx: w - goalieX,
+		sx: w - skaterX,
+		y: h/2
+	}];
 	shotData = json.liveData.plays.allPlays.filter(function(d) {
 		return ["blocked_shot", "missed_shot", "shot", "goal"].indexOf(d.result.eventTypeId.toLowerCase()) >= 0;
 	});
@@ -59,6 +84,83 @@ d3.json(jsonUrl, function(error, json) {
 		var secs = parseInt(timeStr.substring(timeStr.indexOf(":") + 1));
 		return 60 * mins + secs;
 	}
+
+	appendSvg();
 });
+
+//
+// Append svg elements
+//
+
+function appendSvg() {
+	var svg = d3.select("svg")
+		.attr("width", w + margin.left + margin.right)
+		.attr("height", h + margin.top + margin.bottom)
+		.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// Append nets
+	svg.selectAll(".net")
+		.data(teamData)
+		.enter().append("circle")
+			.attr("class", function(d, i) {
+				if (i === 0) {
+					return "net away " + d.colour;
+				} else {
+					return "net home " + d.colour;
+				}
+			})
+			.attr("r", 3)
+			.attr("cx", function(d) {
+				return d.nx;
+			})
+			.attr("cy", function(d) {
+				return d.y;
+			});
+
+	// Append goalie barrier
+	svg.selectAll(".barrier-goalie")
+		.data(teamData)
+		.enter().append("line")
+			.attr("class", function(d, i) {
+				if (i === 0) {
+					return "barrier-goalie away " + d.colour;
+				} else {
+					return "barrier-goalie home " + d.colour;
+				}
+			})
+			.attr("x1", function(d) { return d.gx; })
+			.attr("x2", function(d) { return d.gx; })
+			.attr("y1", function(d) { return d.y - barrierL/2; })
+			.attr("y2", function(d) { return d.y + barrierL/2; })
+
+	// Append skater barrier
+	svg.selectAll(".barrier-skater")
+		.data(teamData)
+		.enter().append("line")
+			.attr("class", function(d, i) {
+				if (i === 0) {
+					return "barrier-skater away " + d.colour;
+				} else {
+					return "barrier-skater home " + d.colour;
+				}
+			})
+			.attr("x1", function(d) { return d.sx; })
+			.attr("x2", function(d) { return d.sx; })
+			.attr("y1", function(d) { return d.y - barrierL/2; })
+			.attr("y2", function(d) { return d.y + barrierL/2; })
+
+	// Activate button to start animation
+	d3.select("button")
+		.style("display", "");
+}
+
+//
+// Animate svg
+//
+
+function animateGame() {
+	console.log("Hi!");
+}
 </script>
 </html>
