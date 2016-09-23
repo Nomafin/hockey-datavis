@@ -1,12 +1,10 @@
 svg {
 	background: #2B3034;
 }
-circle.net.blue,
-circle.shot.blue {
+circle.net.blue {
 	fill: #18A0E6;
 }
-circle.net.red,
-circle.shot.red {
+circle.net.red {
 	fill: #F35747;
 }
 line.barrier-goalie.blue,
@@ -20,6 +18,14 @@ path.shot.red {
 	stroke: #F35747;
 }
 
+circle.shot.blue {
+	fill: #18A0E6;
+	fill-opacity: 0.6;
+}
+circle.shot.red {
+	fill: #F35747;
+	fill-opacity: 0.6;
+}
 /*
 *
 * Shot path styling and animation
@@ -36,6 +42,6 @@ path.shot.animated-dashoffset {
 }
 @keyframes dash {
 	to {
-		stroke-dashoffset: 0;
+		stroke-dashoffset: -260;
 	}
 }

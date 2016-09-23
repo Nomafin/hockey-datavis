@@ -157,7 +157,7 @@ function appendSvg() {
 					return "net home " + d.colour;
 				}
 			})
-			.attr("r", 3)
+			.attr("r", 5)
 			.attr("cx", function(d) {
 				return d.nx;
 			})
@@ -255,14 +255,13 @@ function appendSvg() {
 					return "shot home " + teamData[1].colour;
 				}
 			})
-			.attr("r", 2)
+			.attr("r", 0)
 			.attr("cx", function(d) {
 				return d.end[0];
 			})
 			.attr("cy", function(d) {
 				return d.end[1];
-			})
-			.style("fill-opacity", 0);
+			});
 
 	// Activate button to start animation
 	d3.select("button")
@@ -291,14 +290,16 @@ function animateGame() {
 		})
 		.style("stroke-opacity", 0.5)
 		.on("start", function() {
+			// Apply css animation
 			d3.select(this).classed("animated-dashoffset", true);
 
-			// Transition to hide shot
+			// Fade out the shot path
 			// The delay matches the duration of the CSS stroke-dashoffset animation
 			d3.select(this).transition()
-				.duration(50)
-				.delay(2000)
-				.style("stroke-opacity", 0)
+				.duration(400)
+				.delay(1200)
+				.ease(d3.easeQuadIn)
+				.style("stroke-opacity", 0);
 		});
 
 	// Animate shot explosions
@@ -310,7 +311,7 @@ function animateGame() {
 				delay += periodDurations[i];
 			}
 			// Add offset for when explosion appears depending on shot type
-			var offset = 1450;
+			var offset = 900;
 			var type = d.result.eventTypeId.toLowerCase();
 			if (type === "goal") {
 				offset += 100;
@@ -321,13 +322,13 @@ function animateGame() {
 			}
 			return offset + (delay * 1000) / 200;
 		})
-		.style("fill-opacity", 0.9)
+		.attr("r", 3)
 		.on("end", function() {
 			// Fade out the explosion
 			d3.select(this).transition()
 				.delay(50)
 				.duration(250)
-				.style("fill-opacity", 0)
+				.attr("r", 0);
 		});
 }
 </script>
