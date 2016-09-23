@@ -32,7 +32,7 @@ path.shot {
 	stroke-dashoffset: 260;
 }
 path.shot.animated-dashoffset {
-	animation: dash 2s linear forwards;
+	animation: dash 2s ease-in forwards;
 }
 @keyframes dash {
 	to {

@@ -287,7 +287,7 @@ function animateGame() {
 			for (var i = 0; i < d.about.period - 1; i++) {
 				delay += periodDurations[i];
 			}
-			return ((delay * 1000) / 200) / 2;
+			return (delay * 1000) / 200;
 		})
 		.style("stroke-opacity", 0.5)
 		.on("start", function() {
@@ -310,7 +310,7 @@ function animateGame() {
 				delay += periodDurations[i];
 			}
 			// Add offset for when explosion appears depending on shot type
-			var offset = 1300;
+			var offset = 1450;
 			var type = d.result.eventTypeId.toLowerCase();
 			if (type === "goal") {
 				offset += 100;
@@ -319,7 +319,7 @@ function animateGame() {
 			} else if (type === "blocked_shot") {
 				offset += 0;
 			}
-			return offset + ((delay * 1000) / 200) / 2;
+			return offset + (delay * 1000) / 200;
 		})
 		.style("fill-opacity", 0.9)
 		.on("end", function() {
