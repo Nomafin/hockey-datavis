@@ -166,70 +166,103 @@ function appendSvg() {
 			});
 
 	//
-	// Append shots
+	// Generate and store shot paths
 	//
 
-	var shots = shotG.selectAll(".shot")
-		.data(shotData);
-	shots.enter().append("path")
-		.attr("class", function(d) {
-			var team = d.team.name.toLowerCase();
-			if (team === teamData[0].name) {
-				return "shot away " + teamData[0].colour;
-			} else if (team === teamData[1].name) {
-				return "shot home " + teamData[1].colour;
-			}
-		})
-		.attr("d", function(d) {
-			var start = [];									// Where the shot starts
-			var end = [];									// Where the shot ends
-			var type = d.result.eventTypeId.toLowerCase();	// Shot type
-			var team = d.team.name.toLowerCase(); 			// Team who took the shot
+	shotData.forEach(function(d) {
+		var start = [];									// Where the shot starts
+		var end = [];									// Where the shot ends
+		var type = d.result.eventTypeId.toLowerCase();	// Shot type
+		var team = d.team.name.toLowerCase(); 			// Team who took the shot
 
-			// Get start and end points
-			if (team === teamData[0].name) {
-				start = [teamData[0].nx, y];
-				if (type === "goal") {
-					end = [teamData[1].nx, y];
-				} else if (type === "shot") {
-					end[0] = teamData[1].gx;
-					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
-				} else if (type === "blocked_shot") {
-					end[0] = teamData[1].sx;
-					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
-				} else if (type === "missed_shot") {
-					end = [w, Math.random() * h];
-				}
-			} else {
-				start = [teamData[1].nx, y];
-				if (type === "goal") {
-					end = [teamData[0].nx, y];
-				} else if (type === "shot") {
-					end[0] = teamData[0].gx;
-					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
-				} else if (type === "blocked_shot") {
-					end[0] = teamData[0].sx;
-					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
-				} else if (type === "missed_shot") {
-					end = [0, Math.random() * h];
-				}
+		// Get start and end points
+		if (team === teamData[0].name) {
+			start = [teamData[0].nx, y];
+			if (type === "goal") {
+				end = [teamData[1].nx, y];
+			} else if (type === "shot") {
+				end[0] = teamData[1].gx;
+				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+			} else if (type === "blocked_shot") {
+				end[0] = teamData[1].sx;
+				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+			} else if (type === "missed_shot") {
+				end = [w, Math.random() * h];
 			}
-			
-			// Set arc
-			var end2 = [0, 0];
-			end2[1] = Math.random() * (0.7 * h);						// Extent of y-deviation
-			end2[1] = (Math.round(Math.random()) * 2 - 1) * end2[1];	// Randomize between positive and negative
-			end2[1] = end2[1] + start[1];								// Add arc offset to original y value
-			if (team === teamData[0].name) {
-				end2[0] = start[0] + Math.random() * (end[0] - start[0]);
-			} else {
-				end2[0] = start[0] - Math.random() * (start[0] - end[0]);
+		} else {
+			start = [teamData[1].nx, y];
+			if (type === "goal") {
+				end = [teamData[0].nx, y];
+			} else if (type === "shot") {
+				end[0] = teamData[0].gx;
+				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+			} else if (type === "blocked_shot") {
+				end[0] = teamData[0].sx;
+				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+			} else if (type === "missed_shot") {
+				end = [0, Math.random() * h];
 			}
+		}
+		
+		// Set arc
+		var end2 = [0, 0];
+		end2[1] = Math.random() * (0.7 * h);						// Extent of y-deviation
+		end2[1] = (Math.round(Math.random()) * 2 - 1) * end2[1];	// Randomize between positive and negative
+		end2[1] = end2[1] + start[1];								// Add arc offset to original y value
+		if (team === teamData[0].name) {
+			end2[0] = start[0] + Math.random() * (end[0] - start[0]);
+		} else {
+			end2[0] = start[0] - Math.random() * (start[0] - end[0]);
+		}
 
-			return "M" + start[0] + " " + start[1]
-				+ " S" + end2[0] + " " + end2[1] + " " + end[0] + " " + end[1];
-		})
-		.style("stroke-opacity", 0);
+		d.path = "M" + start[0] + " " + start[1]
+			+ " S" + end2[0] + " " + end2[1] + " " + end[0] + " " + end[1];
+		d.end = end;
+	});
+
+	//
+	// Append shot paths
+	//
+
+	shotG.selectAll("path.shot")
+		.data(shotData)
+		.enter().append("path")
+			.attr("class", function(d) {
+				var team = d.team.name.toLowerCase();
+				if (team === teamData[0].name) {
+					return "shot away " + teamData[0].colour;
+				} else if (team === teamData[1].name) {
+					return "shot home " + teamData[1].colour;
+				}
+			})
+			.attr("d", function(d) {
+				return d.path;
+			})
+			.style("stroke-opacity", 0);
+
+	//
+	// Append shot explosions
+	//
+
+	shotG.selectAll("circle.shot")
+		.data(shotData.filter(function(d) { return d.result.eventTypeId.toLowerCase() !== "missed_shot"; }))
+		.enter().append("circle")
+			.attr("class", function(d) {
+				var team = d.team.name.toLowerCase();
+				if (team === teamData[0].name) {
+					return "shot away " + teamData[0].colour;
+				} else if (team === teamData[1].name) {
+					return "shot home " + teamData[1].colour;
+				}
+			})
+			.attr("r", 2)
+			.attr("cx", function(d) {
+				return d.end[0];
+			})
+			.attr("cy", function(d) {
+				return d.end[1];
+			})
+			.style("fill-opacity", 0);
 
 	// Activate button to start animation
 	d3.select("button")
@@ -241,7 +274,9 @@ function appendSvg() {
 //
 
 function animateGame() {
-	var shots = d3.selectAll(".shot").transition()
+
+	// Animate shot paths
+	d3.selectAll("path.shot").transition()
 		.duration(50)
 		.delay(function(d) {
 			var delay = d.about.periodTime;
@@ -260,6 +295,35 @@ function animateGame() {
 				.duration(50)
 				.delay(2000)
 				.style("stroke-opacity", 0)
+		});
+
+	// Animate shot explosions
+	d3.selectAll("circle.shot").transition()
+		.duration(250)
+		.delay(function(d) {
+			var delay = d.about.periodTime;
+			for (var i = 0; i < d.about.period - 1; i++) {
+				delay += periodDurations[i];
+			}
+			// Add offset for when explosion appears depending on shot type
+			var offset = 1300;
+			var type = d.result.eventTypeId.toLowerCase();
+			if (type === "goal") {
+				offset += 100;
+			} else if (type === "shot") {
+				offset += 50;
+			} else if (type === "blocked_shot") {
+				offset += 0;
+			}
+			return offset + ((delay * 1000) / 200) / 2;
+		})
+		.style("fill-opacity", 0.5)
+		.on("end", function() {
+			// Fade out the explosion
+			d3.select(this).transition()
+				.delay(50)
+				.duration(250)
+				.style("fill-opacity", 0)
 		});
 }
 </script>

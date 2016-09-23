@@ -1,35 +1,37 @@
 svg {
-	background: #263238;
+	background: #2B3034;
 }
-.net.blue {
-	fill: #1DE9B6;
+circle.net.blue,
+circle.shot.blue {
+	fill: #18A0E6;
 }
-.net.red {
-	fill: #FF1744;
+circle.net.red,
+circle.shot.red {
+	fill: #F35747;
 }
-.barrier-goalie.blue,
-.barrier-skater.blue,
-.shot.blue {
-	stroke: #1DE9B6;
+line.barrier-goalie.blue,
+line.barrier-skater.blue,
+path.shot.blue {
+	stroke: #18A0E6;
 }
-.barrier-goalie.red,
-.barrier-skater.red,
-.shot.red {
-	stroke: #FF1744;
+line.barrier-goalie.red,
+line.barrier-skater.red,
+path.shot.red {
+	stroke: #F35747;
 }
 
 /*
 *
-* Shot styling and animation
+* Shot path styling and animation
 *
 */
 
-.shot {
+path.shot {
 	fill: none;
 	stroke-dasharray: 260;
 	stroke-dashoffset: 260;
 }
-.shot.animated-dashoffset {
+path.shot.animated-dashoffset {
 	animation: dash 2s linear forwards;
 }
 @keyframes dash {
