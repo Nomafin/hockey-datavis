@@ -32,6 +32,7 @@ var h = 120;
 var w = 240;
 var margin = { top: 0, right: 0, bottom: 0, left: 0 };
 var barrierL = 60;						// Length of goalie and skater barriers
+var y = h/2;							// Center of nets, goalie barriers, skater barriers
 var netX = 20;							// Net's x-offset from svg edges
 var goalieX = 40;						// Goalie barrier's x-offset from svg edges
 var skaterX = 55;						// Skater barrier's x-offset from svg edges
@@ -50,18 +51,20 @@ d3.json(jsonUrl, function(error, json) {
 	// Store team and shot data
 	teamData = [{
 		abbr: json.gameData.teams.away.abbreviation.toLowerCase(),
+		name: json.gameData.teams.away.name.toLowerCase(),
 		colour: colour[0],
 		nx: netX,
 		gx: goalieX,
 		sx: skaterX,
-		y: h/2
+		y: y
 	}, {
 		abbr: json.gameData.teams.home.abbreviation.toLowerCase(),
+		name: json.gameData.teams.home.name.toLowerCase(),
 		colour: colour[1],
 		nx: w - netX,
 		gx: w - goalieX,
 		sx: w - skaterX,
-		y: h/2
+		y: y
 	}];
 	shotData = json.liveData.plays.allPlays.filter(function(d) {
 		return ["blocked_shot", "missed_shot", "shot", "goal"].indexOf(d.result.eventTypeId.toLowerCase()) >= 0;
@@ -99,25 +102,6 @@ function appendSvg() {
 		.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	// Append nets
-	svg.selectAll(".net")
-		.data(teamData)
-		.enter().append("circle")
-			.attr("class", function(d, i) {
-				if (i === 0) {
-					return "net away " + d.colour;
-				} else {
-					return "net home " + d.colour;
-				}
-			})
-			.attr("r", 3)
-			.attr("cx", function(d) {
-				return d.nx;
-			})
-			.attr("cy", function(d) {
-				return d.y;
-			});
-
 	// Append goalie barrier
 	svg.selectAll(".barrier-goalie")
 		.data(teamData)
@@ -149,6 +133,90 @@ function appendSvg() {
 			.attr("x2", function(d) { return d.sx; })
 			.attr("y1", function(d) { return d.y - barrierL/2; })
 			.attr("y2", function(d) { return d.y + barrierL/2; })
+
+	// Append group to hold shot elements
+	var shotG = svg.append("g")
+		.attr("class", "shots");
+
+	// Append nets
+	svg.selectAll(".net")
+		.data(teamData)
+		.enter().append("circle")
+			.attr("class", function(d, i) {
+				if (i === 0) {
+					return "net away " + d.colour;
+				} else {
+					return "net home " + d.colour;
+				}
+			})
+			.attr("r", 3)
+			.attr("cx", function(d) {
+				return d.nx;
+			})
+			.attr("cy", function(d) {
+				return d.y;
+			});
+
+	//
+	// Append shots
+	//
+
+	var shots = shotG.selectAll(".shot")
+		.data(shotData);
+	shots.enter().append("path")
+		.attr("class", function(d) {
+			var type = d.result.eventTypeId.toLowerCase();	// Shot type
+			var team = d.team.name.toLowerCase(); 			// Team who took the shot
+
+			// For blocked shots, update the team
+			if (type === "blocked_shot" && team === teamData[0].name) {
+				team = teamData[1].name;
+			} else if (type === "blocked_shot" && team === teamData[1].name) {
+				team = teamData[0].name;
+			}
+
+			if (team === teamData[0].name) {
+				return "shot away " + teamData[0].colour;
+			} else if (team === teamData[1].name) {
+				return "shot home " + teamData[1].colour;
+			}
+		})
+		.attr("d", function(d) {
+			var startX;										// Where the shot starts
+			var endX;										// Where the shot ends
+			var type = d.result.eventTypeId.toLowerCase();	// Shot type
+			var team = d.team.name.toLowerCase(); 			// Team who took the shot
+
+			// For blocked shots, update the team
+			if (type === "blocked_shot" && team === teamData[0].name) {
+				team = teamData[1].name;
+			} else if (type === "blocked_shot" && team === teamData[1].name) {
+				team = teamData[0].name;
+			}
+
+			// Get start and end points
+			if (team === teamData[0].name) {
+				startX = teamData[0].nx;
+				endX = teamData[1].nx;
+			} else {
+				startX = teamData[1].nx;
+				endX = teamData[0].nx;
+			}
+			
+			// Set arc
+			var endX2;
+			var endY2 = Math.random() * 100;
+			endY2 = (Math.round(Math.random()) * 2 - 1) * endY2;	// Randomize between positive and negative
+			endY2 = y + endY2;										// Add arc offset to original y value
+			if (team === teamData[0].name) {
+				endX2 = startX + Math.random() * (endX - startX);
+			} else {
+				endX2 = startX - Math.random() * (startX - endX);
+			}
+
+			return "M" + startX + " " + y
+				+ " S" + endX2 + " " + endY2 + " " + endX + " " + y;
+		});
 
 	// Activate button to start animation
 	d3.select("button")

@@ -16,3 +16,13 @@
 .barrier-skater.red {
 	stroke: red;
 }
+.shot.red {
+	fill: none;
+	stroke: red;
+	stroke-opacity: 0.5;
+}
+.shot.blue {
+	fill: none;
+	stroke: blue;
+	stroke-opacity: 0.5;
+}
