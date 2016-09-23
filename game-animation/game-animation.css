@@ -21,14 +21,14 @@ circle.shot.red {
 	fill-opacity: 0.6;
 }
 path.net.red {
-	stroke-width: 2px;
+	stroke-width: 3px;
 	stroke: #F35747;
-	fill: #F35747;
+	fill: none;
 }
 path.net.blue {
-	stroke-width: 2px;
+	stroke-width: 3px;
 	stroke: #18A0E6;
-	fill: #18A0E6;
+	fill: none;
 }
 /*
 *

@@ -147,23 +147,6 @@ function appendSvg() {
 		.attr("class", "shots");
 
 	// Append nets
-	// svg.selectAll(".net")
-	// 	.data(teamData)
-	// 	.enter().append("circle")
-	// 		.attr("class", function(d, i) {
-	// 			if (i === 0) {
-	// 				return "net away " + d.colour;
-	// 			} else {
-	// 				return "net home " + d.colour;
-	// 			}
-	// 		})
-	// 		.attr("r", 5)
-	// 		.attr("cx", function(d) {
-	// 			return d.nx;
-	// 		})
-	// 		.attr("cy", function(d) {
-	// 			return d.y;
-	// 		});
 	svg.selectAll("net")
 		.data(teamData)
 		.enter().append("path")
@@ -186,13 +169,6 @@ function appendSvg() {
 						+ " L" + (teamData[1].nx + 12) + " " + (y + 8)
 						+ "Z";				
 				}
-			})
-			.attr("transform", function(d, i) {
-				if (i === 0) {
-					return "translate(-5, 0)";
-				} else {
-					return "translate(5, 0)";
-				}
 			});
 
 	//
@@ -207,9 +183,9 @@ function appendSvg() {
 
 		// Get start and end points
 		if (team === teamData[0].name) {
-			start = [teamData[0].nx, y];
+			start = [teamData[0].nx + 5, y];	// Shift shot start point to right to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[1].nx, y];
+				end = [teamData[1].nx + 8, y];	// Shift shot end point to right to hit center of net
 			} else if (type === "shot") {
 				end[0] = teamData[1].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
@@ -220,9 +196,9 @@ function appendSvg() {
 				end = [w + margin.right, Math.random() * h];
 			}
 		} else {
-			start = [teamData[1].nx, y];
+			start = [teamData[1].nx - 5, y];	// Shift shot start point to left to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[0].nx, y];
+				end = [teamData[0].nx - 8, y];	// Shift shot end point to left to hit center of net
 			} else if (type === "shot") {
 				end[0] = teamData[0].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
