@@ -71,6 +71,14 @@ d3.json(jsonUrl, function(error, json) {
 	});
 	shotData.forEach(function(d) {
 		d.about.periodTime = jsonTimeToSecs(d.about.periodTime);
+		// For blocked shots, update the team
+		var type = d.result.eventTypeId.toLowerCase();
+		var team = d.team.name.toLowerCase();
+		if (type === "blocked_shot" && team === teamData[0].name) {
+			 d.team.name = teamData[1].name.toLowerCase();
+		} else if (type === "blocked_shot" && team === teamData[1].name) {
+			 d.team.name = teamData[0].name.toLowerCase();
+		}
 	});
 
 	// Store period durations
@@ -165,16 +173,7 @@ function appendSvg() {
 		.data(shotData);
 	shots.enter().append("path")
 		.attr("class", function(d) {
-			var type = d.result.eventTypeId.toLowerCase();	// Shot type
-			var team = d.team.name.toLowerCase(); 			// Team who took the shot
-
-			// For blocked shots, update the team
-			if (type === "blocked_shot" && team === teamData[0].name) {
-				team = teamData[1].name;
-			} else if (type === "blocked_shot" && team === teamData[1].name) {
-				team = teamData[0].name;
-			}
-
+			var team = d.team.name.toLowerCase();
 			if (team === teamData[0].name) {
 				return "shot away " + teamData[0].colour;
 			} else if (team === teamData[1].name) {
@@ -186,13 +185,6 @@ function appendSvg() {
 			var end = [];									// Where the shot ends
 			var type = d.result.eventTypeId.toLowerCase();	// Shot type
 			var team = d.team.name.toLowerCase(); 			// Team who took the shot
-
-			// For blocked shots, update the team
-			if (type === "blocked_shot" && team === teamData[0].name) {
-				team = teamData[1].name;
-			} else if (type === "blocked_shot" && team === teamData[1].name) {
-				team = teamData[0].name;
-			}
 
 			// Get start and end points
 			if (team === teamData[0].name) {
@@ -225,7 +217,7 @@ function appendSvg() {
 			
 			// Set arc
 			var end2 = [0, 0];
-			end2[1] = Math.random() * (0.8 * h);						// Extent of y-deviation
+			end2[1] = Math.random() * (0.7 * h);						// Extent of y-deviation
 			end2[1] = (Math.round(Math.random()) * 2 - 1) * end2[1];	// Randomize between positive and negative
 			end2[1] = end2[1] + start[1];								// Add arc offset to original y value
 			if (team === teamData[0].name) {
