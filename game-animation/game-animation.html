@@ -8,7 +8,7 @@
 	<link rel="stylesheet" type="text/css" href="game-animation.css">
 </head>
 <body style="padding: 40px;">
-	<svg style="display: table; outline: 1px solid #616161;"></svg>
+	<svg style="display: table;"></svg>
 	<button style="margin: 20px 0; display: none;" onclick="animateGame();">Start animation</button>
 </body>
 <script>
@@ -182,8 +182,8 @@ function appendSvg() {
 			}
 		})
 		.attr("d", function(d) {
-			var startX;										// Where the shot starts
-			var endX;										// Where the shot ends
+			var start = [];									// Where the shot starts
+			var end = [];									// Where the shot ends
 			var type = d.result.eventTypeId.toLowerCase();	// Shot type
 			var team = d.team.name.toLowerCase(); 			// Team who took the shot
 
@@ -196,26 +196,46 @@ function appendSvg() {
 
 			// Get start and end points
 			if (team === teamData[0].name) {
-				startX = teamData[0].nx;
-				endX = teamData[1].nx;
+				start = [teamData[0].nx, y];
+				if (type === "goal") {
+					end = [teamData[1].nx, y];
+				} else if (type === "shot") {
+					end[0] = teamData[1].gx;
+					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+				} else if (type === "blocked_shot") {
+					end[0] = teamData[1].sx;
+					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+				} else if (type === "missed_shot") {
+					end = [w, Math.random() * h];
+				}
 			} else {
-				startX = teamData[1].nx;
-				endX = teamData[0].nx;
+				start = [teamData[1].nx, y];
+				if (type === "goal") {
+					end = [teamData[0].nx, y];
+				} else if (type === "shot") {
+					end[0] = teamData[0].gx;
+					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+				} else if (type === "blocked_shot") {
+					end[0] = teamData[0].sx;
+					end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
+				} else if (type === "missed_shot") {
+					end = [0, Math.random() * h];
+				}
 			}
 			
 			// Set arc
-			var endX2;
-			var endY2 = Math.random() * 90;							// Adjust the constant so that all shots cross barriers
-			endY2 = (Math.round(Math.random()) * 2 - 1) * endY2;	// Randomize between positive and negative
-			endY2 = y + endY2;										// Add arc offset to original y value
+			var end2 = [0, 0];
+			end2[1] = Math.random() * (0.8 * h);						// Extent of y-deviation
+			end2[1] = (Math.round(Math.random()) * 2 - 1) * end2[1];	// Randomize between positive and negative
+			end2[1] = end2[1] + start[1];								// Add arc offset to original y value
 			if (team === teamData[0].name) {
-				endX2 = startX + Math.random() * (endX - startX);
+				end2[0] = start[0] + Math.random() * (end[0] - start[0]);
 			} else {
-				endX2 = startX - Math.random() * (startX - endX);
+				end2[0] = start[0] - Math.random() * (start[0] - end[0]);
 			}
 
-			return "M" + startX + " " + y
-				+ " S" + endX2 + " " + endY2 + " " + endX + " " + y;
+			return "M" + start[0] + " " + start[1]
+				+ " S" + end2[0] + " " + end2[1] + " " + end[0] + " " + end[1];
 		})
 		.style("stroke-opacity", 0);
 
