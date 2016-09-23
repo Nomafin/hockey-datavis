@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Game Animation</title>
+	<script src="../d3.v4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="game-animation.css">
+</head>
+<body>
+</body>
+<script>
+var gameId = 2016060108;
+var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
+
+//
+// Layout variables
+//
+
+var h = 120;
+var w = 240;
+var ptNet = [[20, w/2], [220, w/2]]; // Coordinates for away/home nets
+
+var teamData;
+var shotData;
+var periodDurations;
+
+//
+// Prepare data
+//
+
+d3.json(jsonUrl, function(error, json) {
+	if (error) {
+		console.log(error);
+		return;
+	}
+	console.log(json);
+
+	// Store team and shot data
+	teamData = [json.gameData.teams.away.abbreviation.toLowerCase(), json.gameData.teams.home.abbreviation.toLowerCase()];
+	shotData = json.liveData.plays.allPlays.filter(function(d) {
+		return ["blocked_shot", "missed_shot", "shot", "goal"].indexOf(d.result.eventTypeId.toLowerCase()) >= 0;
+	});
+	shotData.forEach(function(d) {
+		d.about.periodTime = jsonTimeToSecs(d.about.periodTime);
+	});
+
+	// Store period durations
+	var periodData = json.liveData.plays.allPlays.filter(function(d) {
+		return ["period_end"].indexOf(d.result.eventTypeId.toLowerCase()) >= 0;
+	});
+	periodDurations = periodData.map(function(d) {
+		return jsonTimeToSecs(d.about.periodTime);
+	});
+
+	// Convert mm:ss to seconds
+	function jsonTimeToSecs(timeStr) {
+		var mins = parseInt(timeStr.substring(0, timeStr.indexOf(":")));
+		var secs = parseInt(timeStr.substring(timeStr.indexOf(":") + 1));
+		return 60 * mins + secs;
+	}
+});
+</script>
+</html>
