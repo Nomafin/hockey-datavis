@@ -275,6 +275,10 @@ function appendSvg() {
 
 function animateGame() {
 
+	// Disable start button
+	d3.select("button")
+		.attr("disabled", "disabled");
+
 	// Animate shot paths
 	d3.selectAll("path.shot").transition()
 		.duration(50)
@@ -317,7 +321,7 @@ function animateGame() {
 			}
 			return offset + ((delay * 1000) / 200) / 2;
 		})
-		.style("fill-opacity", 0.5)
+		.style("fill-opacity", 0.9)
 		.on("end", function() {
 			// Fade out the explosion
 			d3.select(this).transition()
