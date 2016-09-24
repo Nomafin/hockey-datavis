@@ -42,12 +42,12 @@
 
 .shot-tallies > .home,
 .shot-tallies > .away {
-	width: 80px; /* Width of 10 bullets */
+	width: 80px; /* Width of 20 bullets */
 	display: inline-block;
 	vertical-align: top;
 	margin: 0 20px;
 	line-height: 0;
-	min-height: 80px;
+	min-height: 20px;
 }
 .shot-tallies > .home {
 	float: right;
@@ -56,16 +56,16 @@
 .shot-tallies .bullet {
 	display: inline-block;
 	vertical-align: top;
-	height: 4px;
-	width: 4px;
-	margin: 4px 0 0 0;
+	height: 2px;
+	width: 2px;
+	margin: 2px 0 0 0;
 	border-radius: 2px;
 }
 .shot-tallies .away .bullet {
-	margin-right: 4px;
+	margin-right: 2px;
 }
 .shot-tallies .home .bullet {
-	margin-left: 4px;
+	margin-left: 2px;
 }
 .shot-tallies .blue .bullet {
 	background: #18A0E6;

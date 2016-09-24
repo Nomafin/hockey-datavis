@@ -231,7 +231,7 @@ function appendSvg() {
 				end[0] = teamData[1].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [w + margin.right, Math.random() * h];
+				end = [w + Math.random() * margin.right, Math.random() * h];
 			}
 		} else {
 			start = [teamData[1].nx - 5, y];	// Shift shot start point to left to give some space between it and the net
@@ -244,7 +244,7 @@ function appendSvg() {
 				end[0] = teamData[0].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [0 - margin.left, Math.random() * h];
+				end = [0 - Math.random() * margin.left, Math.random() * h];
 			}
 		}
 		
@@ -289,7 +289,7 @@ function appendSvg() {
 	//
 
 	shotG.selectAll("circle.shot")
-		.data(shotData.filter(function(d) { return d.result.eventTypeId.toLowerCase() !== "missed_shot"; }))
+		.data(shotData)
 		.enter().append("circle")
 			.attr("class", function(d) {
 				var team = d.team.name.toLowerCase();
@@ -366,7 +366,9 @@ function animateGame() {
 			// Add offset for when explosion appears depending on shot type
 			var offset = 900;
 			var type = d.result.eventTypeId.toLowerCase();
-			if (type === "goal") {
+			if (type === "missed_shot") {
+				offset += 125;
+			} else if (type === "goal") {
 				offset += 100;
 			} else if (type === "shot") {
 				offset += 50;
