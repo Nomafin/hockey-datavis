@@ -85,13 +85,11 @@
 	left: calc(50% - 16px);
 	top: 4px;
 }
-#clock circle {
-	stroke: rgba(255, 255, 255, 0.2);
-	stroke-width: 2;
-	fill: none;
-}
 #clock path {
-	fill: rgba(255, 255, 255, 0.6);
+	fill: rgba(255, 255, 255, 0.2);
+}
+#clock #clock-elapsed {
+	fill: rgba(255, 0, 0, 0.1);
 }
 #period {
 	/* Height and width matches the clock svg */

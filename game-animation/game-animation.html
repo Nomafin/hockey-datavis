@@ -66,8 +66,7 @@ var colour = ["red", "blue"];			// Colour class for away/home
 var tau = 2 * Math.PI;
 var arc = d3.arc()
 	.innerRadius(12)
-	.outerRadius(14)
-	.startAngle(0);
+	.outerRadius(14);
 
 //
 // Prepare data
@@ -154,13 +153,24 @@ function appendSvg() {
 	var clock = d3.select("#clock")
 		.attr("width", 32)
 		.attr("height", 32);
-	clock.append("circle")
-		.attr("r", 13)
-		.attr("cx", 16)
-		.attr("cy", 16);
+	// Append paths for period lengths
+	d3.select("#clock").selectAll("path")
+		.data(maxPeriodDurations.map(function(d, i) {
+			var startElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j < i; }));
+			var endElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j <= i; }));
+			return {
+				startAngle: (startElapsed / d3.sum(maxPeriodDurations)) * tau + 0.08,
+				endAngle: (endElapsed / d3.sum(maxPeriodDurations)) * tau - 0.08,
+				duration: d
+			};
+		}))
+		.enter().append("path")
+			.attr("d", arc)
+			.attr("transform", "translate(16, 16)");
 	// Append path for the elapsed time
 	clock.append("path")
-		.datum({ endAngle: 0 * tau, duration: d3.sum(maxPeriodDurations) })
+		.datum({ startAngle: 0, endAngle: 0 * tau, duration: d3.sum(maxPeriodDurations) })
+		.attr("id", "clock-elapsed")
 		.attr("d", arc)
 		.attr("transform", "translate(16, 16)");
 		
@@ -358,7 +368,7 @@ function animateGame() {
 		.attr("disabled", "disabled");
 
 	// Animate clock
-	d3.select("#clock > path").transition()
+	d3.select("#clock-elapsed").transition()
 		.duration(function(d) { return (d.duration * 1000) / 200; })
 		.ease(d3.easeLinear)
 		.call(arcTween, 1 * tau);
