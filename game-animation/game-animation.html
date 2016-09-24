@@ -9,8 +9,8 @@
 </head>
 <body style="padding: 40px;">
 	<div class="container">
-		<svg></svg>
-		<div style="border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 9px;">
+		<svg id="rink"></svg>
+		<div style="border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 9px; position: relative;">
 			<div class="away header">
 				<span class="abbr">AWAY</span
 				><span class="score">0</span>
@@ -19,6 +19,14 @@
 				<span class="score">0</span
 				><span class="abbr">HOME</span>
 			</div>
+			<div class="shot-tallies">
+				<div class="away">
+				</div>
+				<div class="home">
+				</div>
+			</div>
+			<svg id="clock">
+			</svg>
 		</div>
 	</div>
 	<button style="margin: 20px 0; display: none;" onclick="animateGame();">Start animation</button>
@@ -34,7 +42,8 @@
 var jsonUrl = "live.json";
 var teamData;
 var shotData;
-var periodDurations;
+var periodDurations; // Play time for each period — in OT, goals will end play early
+var maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60, 5 * 60];
 
 //
 // Layout variables
@@ -117,11 +126,23 @@ d3.json(jsonUrl, function(error, json) {
 
 function appendSvg() {
 
-	// Set team names
+	// Set team names and colours
 	d3.select(".away.header > .abbr").text(teamData[0].abbr);
 	d3.select(".home.header > .abbr").text(teamData[1].abbr);
+	d3.select(".away.header").attr("class", "away header " + teamData[0].colour);
+	d3.select(".home.header").attr("class", "home header " + teamData[1].colour);
+	d3.select(".shot-tallies > .away").attr("class", "away " + teamData[0].colour);
+	d3.select(".shot-tallies > .home").attr("class", "home " + teamData[1].colour);
 
-	var svg = d3.select("svg")
+	//
+	// Append clock
+	//
+
+	//
+	// Append rink elements
+	//
+	
+	var svg = d3.select("#rink")
 		.attr("width", w + margin.left + margin.right)
 		.attr("height", h + margin.top + margin.bottom)
 		.append("g")
@@ -368,9 +389,17 @@ function animateGame() {
 				.delay(50)
 				.duration(250)
 				.attr("r", 0);
+			// Add bullet to shot tally
+			var team = d.team.name.toLowerCase();
+			if (team === teamData[0].name) {
+				d3.select(".shot-tallies .away").append("span")
+					.attr("class", "bullet");
+			} else {
+				d3.select(".shot-tallies .home").append("span")
+					.attr("class", "bullet");
+			}
 			// Update goal counts
 			var type = d.result.eventTypeId.toLowerCase();
-			var team = d.team.name.toLowerCase();
 			if (type === "goal") {
 				if (team === teamData[0].name) {
 					goals[0]++;

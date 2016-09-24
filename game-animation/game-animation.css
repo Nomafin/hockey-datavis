@@ -21,15 +21,77 @@
 }
 .header > span {
 	display: inline-block;
+	vertical-align: top;
 	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-	font-size: 12px;
+	font-size: 14px;
 	line-height: 20px;
-	color: rgba(255, 255, 255, 0.8);
 	text-transform: uppercase;
 }
+.header.red span {
+	color: #F35747;
+}
+.header.blue span {
+	color: #18A0E6;
+}
+
 /*
 *
-* Svg styling
+* Shot tally styling
+*
+*/
+
+.shot-tallies > .home,
+.shot-tallies > .away {
+	width: 80px; /* Width of 10 bullets */
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 20px;
+	line-height: 0;
+	min-height: 80px;
+}
+.shot-tallies > .home {
+	float: right;
+	text-align: right;
+}
+.shot-tallies .bullet {
+	display: inline-block;
+	vertical-align: top;
+	height: 4px;
+	width: 4px;
+	margin: 4px 0 0 0;
+	border-radius: 2px;
+}
+.shot-tallies .away .bullet {
+	margin-right: 4px;
+}
+.shot-tallies .home .bullet {
+	margin-left: 4px;
+}
+.shot-tallies .blue .bullet {
+	background: #18A0E6;
+}
+.shot-tallies .red .bullet {
+	background: #F35747;
+}
+
+/*
+*
+* Clock svg styling
+*
+*/
+
+#clock {
+	background: #222;
+	width: 32px;
+	height: 32px;
+	position: absolute;
+	left: calc(50% - 16px);
+	top: 4px;
+}
+
+/*
+*
+* Rink svg styling
 *
 */
 
