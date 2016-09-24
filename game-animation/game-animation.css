@@ -1,11 +1,13 @@
 body {
 	font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	background: #2B3034;
 }
 .container {
 	padding: 10px 0;
 	background: #2B3034;
 	display: table;
 	position: relative;
+	outline: 1px solid #ff00ff;
 }
 .header {
 	width: 50%;
