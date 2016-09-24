@@ -42,13 +42,13 @@
 // Data variables
 //
 
-// var gameId = 2016060108;
-// var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
-var jsonUrl = "live.json";
+var gameId = 2016080111;
+var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
+// var jsonUrl = "live.json";
 var teamData;
 var shotData;
 var periodDurations; // Play time for each period — in OT, goals will end play early
-var maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60];
+var maxPeriodDurations;
 
 //
 // Layout variables
@@ -123,6 +123,12 @@ d3.json(jsonUrl, function(error, json) {
 	periodDurations = periodData.map(function(d) {
 		return jsonTimeToSecs(d.about.periodTime);
 	});
+
+	// Store max period durations
+	maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60];
+	if (periodDurations.length === 4) {
+		maxPeriodDurations.push([5 * 60]);
+	}
 
 	// Convert mm:ss to seconds
 	function jsonTimeToSecs(timeStr) {
@@ -385,7 +391,7 @@ function animateGame() {
 	d3.select("#clock-elapsed").transition()
 		.duration(function(d) { return (d.duration * 1000) / 200; })
 		.ease(d3.easeLinear)
-		.call(arcTween, 1 * tau);
+		.call(arcTween, (d3.sum(periodDurations) / d3.sum(maxPeriodDurations)) * tau);
 	function arcTween(transition, newAngle) {
 		transition.attrTween("d", function(d) {
 			var interpolate = d3.interpolate(d.endAngle, newAngle);
