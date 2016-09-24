@@ -185,7 +185,7 @@ function appendSvg() {
 		if (team === teamData[0].name) {
 			start = [teamData[0].nx + 5, y];	// Shift shot start point to right to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[1].nx + 8, y];	// Shift shot end point to right to hit center of net
+				end = [teamData[1].nx + 9, y];	// Shift shot end point to right to hit center of net
 			} else if (type === "shot") {
 				end[0] = teamData[1].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
@@ -198,7 +198,7 @@ function appendSvg() {
 		} else {
 			start = [teamData[1].nx - 5, y];	// Shift shot start point to left to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[0].nx - 8, y];	// Shift shot end point to left to hit center of net
+				end = [teamData[0].nx - 9, y];	// Shift shot end point to left to hit center of net
 			} else if (type === "shot") {
 				end[0] = teamData[0].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
@@ -210,7 +210,7 @@ function appendSvg() {
 			}
 		}
 		
-		// Set arc
+		// Generate arc
 		var end2 = [0, 0];
 		end2[1] = Math.random() * (0.7 * h);						// Extent of y-deviation
 		end2[1] = (Math.round(Math.random()) * 2 - 1) * end2[1];	// Randomize between positive and negative
@@ -267,6 +267,14 @@ function appendSvg() {
 			})
 			.attr("cy", function(d) {
 				return d.end[1];
+			})
+			.style("stroke-width", function(d) {
+				var type = d.result.eventTypeId.toLowerCase();
+				if (type === "goal") {
+					return 8;
+				} else {
+					return 0;
+				}
 			});
 
 	// Activate button to start animation
@@ -328,7 +336,14 @@ function animateGame() {
 			}
 			return offset + (delay * 1000) / 200;
 		})
-		.attr("r", 3)
+		.attr("r", function(d) {
+			var type = d.result.eventTypeId.toLowerCase();
+			if (type === "goal") {
+				return 16;
+			} else {
+				return 3;
+			}
+		})
 		.on("end", function() {
 			// Fade out the explosion
 			d3.select(this).transition()

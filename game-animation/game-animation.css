@@ -13,12 +13,16 @@ path.shot.red {
 }
 
 circle.shot.blue {
+	stroke: #18A0E6;
 	fill: #18A0E6;
 	fill-opacity: 0.6;
+	stroke-opacity: 0.85;
 }
 circle.shot.red {
+	stroke: #F35747;
 	fill: #F35747;
 	fill-opacity: 0.6;
+	stroke-opacity: 0.85;
 }
 path.net.red {
 	stroke-width: 3px;
