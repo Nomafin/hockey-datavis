@@ -42,13 +42,15 @@
 // Data variables
 //
 
-var gameId = 2016080111;
+var gameId = 2016080111; // OT game
+//var gameId = 2016080105; // SO game
 var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
-// var jsonUrl = "live.json";
+var jsonUrl = "live.json"; // Regulation game
 var teamData;
 var shotData;
 var periodDurations; // Play time for each period — in OT, goals will end play early
 var maxPeriodDurations;
+var isRegularSeason = true;
 
 //
 // Layout variables
@@ -72,6 +74,12 @@ var tau = 2 * Math.PI;
 var arc = d3.arc()
 	.innerRadius(12)
 	.outerRadius(14);
+
+//
+// Header variables
+//
+
+var score = [0, 0];
 
 //
 // Prepare data
@@ -126,8 +134,16 @@ d3.json(jsonUrl, function(error, json) {
 
 	// Store max period durations
 	maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60];
-	if (periodDurations.length === 4) {
-		maxPeriodDurations.push([5 * 60]);
+	if (isRegularSeason) {
+		if (periodDurations.length > 3) {
+			maxPeriodDurations.push([5 * 60]);
+		}
+
+		// If SO occurred, give it an artificial duration for the clock transitions to use
+		if (periodDurations.length > 4) {
+			periodDurations[4] = 180;
+			maxPeriodDurations.push([180]);
+		}
 	}
 
 	// Convert mm:ss to seconds
@@ -170,8 +186,8 @@ function appendSvg() {
 			var startElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j < i; }));
 			var endElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j <= i; }));
 			return {
-				startAngle: (startElapsed / d3.sum(maxPeriodDurations)) * tau + 0.08,
-				endAngle: (endElapsed / d3.sum(maxPeriodDurations)) * tau - 0.08,
+				startAngle: (startElapsed / d3.sum(maxPeriodDurations)) * tau + 0.07,
+				endAngle: (endElapsed / d3.sum(maxPeriodDurations)) * tau - 0.07,
 				duration: d
 			};
 		}))
@@ -410,12 +426,15 @@ function animateGame() {
 		d3.select("#period").transition()
 			.duration(10)
 			.delay(function() {
-				return maxPeriodDurations[currentPeriod - 1] * 1000 / 200;
+				// Since SO is 0 seconds long, add a dummy 10ms delay
+				// Without this dummy delay, the transition from SO to final won't happen
+				return d3.max([0, maxPeriodDurations[currentPeriod - 1] * 1000 / 200]);
 			})
 			.style("opacity", 1)
 			.ease(d3.easeQuadOut)
 			.on("end", function() {
 				currentPeriod++;
+
 				// Update text
 				if (currentPeriod <= periodDurations.length) {
 					d3.select(this).text(currentPeriod);
@@ -432,6 +451,8 @@ function animateGame() {
 				// Schedule the next transition
 				if (currentPeriod <= periodDurations.length) {
 					transitionPeriod();
+				} else {
+					endGame();
 				}
 			});
 	}
@@ -461,7 +482,6 @@ function animateGame() {
 		});
 
 	// Animate shot explosions and goal counts
-	var goals = [0, 0];
 	d3.selectAll("circle.shot").transition()
 		.duration(250)
 		.delay(function(d) {
@@ -470,7 +490,7 @@ function animateGame() {
 				delay += periodDurations[i];
 			}
 			// Add offset for when explosion appears depending on shot type
-			var offset = 900;
+			var offset = 600;
 			var type = d.result.eventTypeId.toLowerCase();
 			if (type === "missed_shot") {
 				offset += 125;
@@ -508,18 +528,39 @@ function animateGame() {
 				d3.select(".shot-tallies .home").append("span")
 					.attr("class", "bullet");
 			}
-			// Update goal counts
+			// Update score - exclude shootout goals
 			var type = d.result.eventTypeId.toLowerCase();
 			if (type === "goal") {
-				if (team === teamData[0].name) {
-					goals[0]++;
-					d3.select(".away.header > .score").text(goals[0]);
-				} else {
-					goals[1]++;
-					d3.select(".home.header > .score").text(goals[1]);
+				var periodType = d.about.periodType.toLowerCase();
+				if (periodType !== "shootout") {
+					if (team === teamData[0].name) {
+						score[0]++;
+						d3.select(".away.header > .score").text(score[0]);
+					} else {
+						score[1]++;
+						d3.select(".home.header > .score").text(score[1]);
+					}
 				}
 			}
 		});
+}
+
+function endGame() {
+	console.log("Game ended!");
+
+	// Update final score for SO
+	if (isRegularSeason && periodDurations.length === 5) {
+		var goalData = shotData.filter(function(d) { return d.result.eventTypeId.toLowerCase() === "goal"; });
+		var aGoals = goalData.filter(function(d) { return d.team.name.toLowerCase() === teamData[0].name.toLowerCase(); }).length;
+		var hGoals = goalData.filter(function(d) { return d.team.name.toLowerCase() === teamData[1].name.toLowerCase(); }).length;
+		if (aGoals > hGoals) {
+			score[0]++;
+			d3.select(".away.header > .score").text(score[0]);
+		} else if (hGoals > aGoals) {
+			score[1]++;
+			d3.select(".home.header > .score").text(score[1]);
+		}
+	}
 }
 </script>
 </html>

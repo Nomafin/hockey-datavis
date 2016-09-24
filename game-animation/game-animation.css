@@ -88,10 +88,10 @@ body {
 	top: 4px;
 }
 #clock path {
-	fill: rgba(255, 255, 255, 0.2);
+	fill: rgba(255, 255, 255, 0.3);
 }
 #clock #clock-elapsed {
-	fill: rgba(255, 255, 255, 0.6);
+	fill: rgba(255, 255, 255, 0.7);
 }
 #period {
 	/* Height and width matches the clock svg */
@@ -161,7 +161,7 @@ path.shot {
 	stroke-dashoffset: 260;
 }
 path.shot.animated-dashoffset {
-	animation: dash 2s ease-in forwards;
+	animation: dash 1500ms ease-in forwards;
 }
 @keyframes dash {
 	to {
