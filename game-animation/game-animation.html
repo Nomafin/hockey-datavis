@@ -8,7 +8,19 @@
 	<link rel="stylesheet" type="text/css" href="game-animation.css">
 </head>
 <body style="padding: 40px;">
-	<svg style="display: table;"></svg>
+	<div class="container">
+		<svg></svg>
+		<div style="border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 9px;">
+			<div class="away header">
+				<span class="abbr">AWAY</span
+				><span class="score">0</span>
+			</div
+			><div class="home header">
+				<span class="score">0</span
+				><span class="abbr">HOME</span>
+			</div>
+		</div>
+	</div>
 	<button style="margin: 20px 0; display: none;" onclick="animateGame();">Start animation</button>
 </body>
 <script>
@@ -104,6 +116,11 @@ d3.json(jsonUrl, function(error, json) {
 //
 
 function appendSvg() {
+
+	// Set team names
+	d3.select(".away.header > .abbr").text(teamData[0].abbr);
+	d3.select(".home.header > .abbr").text(teamData[1].abbr);
+
 	var svg = d3.select("svg")
 		.attr("width", w + margin.left + margin.right)
 		.attr("height", h + margin.top + margin.bottom)
@@ -316,7 +333,8 @@ function animateGame() {
 				.style("stroke-opacity", 0);
 		});
 
-	// Animate shot explosions
+	// Animate shot explosions and goal counts
+	var goals = [0, 0];
 	d3.selectAll("circle.shot").transition()
 		.duration(250)
 		.delay(function(d) {
@@ -344,12 +362,24 @@ function animateGame() {
 				return 3;
 			}
 		})
-		.on("end", function() {
+		.on("end", function(d) {
 			// Fade out the explosion
 			d3.select(this).transition()
 				.delay(50)
 				.duration(250)
 				.attr("r", 0);
+			// Update goal counts
+			var type = d.result.eventTypeId.toLowerCase();
+			var team = d.team.name.toLowerCase();
+			if (type === "goal") {
+				if (team === teamData[0].name) {
+					goals[0]++;
+					d3.select(".away.header > .score").text(goals[0]);
+				} else {
+					goals[1]++;
+					d3.select(".home.header > .score").text(goals[1]);
+				}
+			}
 		});
 }
 </script>

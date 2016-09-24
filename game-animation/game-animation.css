@@ -1,6 +1,38 @@
-svg {
+.container {
+	padding: 10px 0;
 	background: #2B3034;
+	display: table;
+	position: relative;
 }
+.header {
+	width: 50%;
+	display: inline-block;
+	box-sizing: border-box;
+	padding: 0 20px;
+}
+.header.home {
+	text-align: right;
+}
+.header.away > .abbr {
+	margin-right: 5px;
+}
+.header.home > .score {
+	margin-right: 5px;
+}
+.header > span {
+	display: inline-block;
+	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	line-height: 20px;
+	color: rgba(255, 255, 255, 0.8);
+	text-transform: uppercase;
+}
+/*
+*
+* Svg styling
+*
+*/
+
 line.barrier-goalie.blue,
 line.barrier-skater.blue,
 path.shot.blue {
@@ -11,7 +43,10 @@ line.barrier-skater.red,
 path.shot.red {
 	stroke: #F35747;
 }
-
+line.barrier-goalie,
+line.barrier-skater {
+	stroke-width: 1;
+}
 circle.shot.blue {
 	stroke: #18A0E6;
 	fill: #18A0E6;
