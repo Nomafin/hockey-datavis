@@ -467,6 +467,8 @@ function animateGame() {
 				.delay(50)
 				.duration(250)
 				.attr("r", 0);
+		})
+		.on("start", function(d) {
 			// Add bullet to shot tally
 			var team = d.team.name.toLowerCase();
 			if (team === teamData[0].name) {
