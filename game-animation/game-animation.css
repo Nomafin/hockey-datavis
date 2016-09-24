@@ -81,12 +81,31 @@
 */
 
 #clock {
-	background: #222;
-	width: 32px;
-	height: 32px;
 	position: absolute;
 	left: calc(50% - 16px);
 	top: 4px;
+}
+#clock circle {
+	stroke: rgba(255, 255, 255, 0.2);
+	stroke-width: 2;
+	fill: none;
+}
+#clock path {
+	fill: rgba(255, 255, 255, 0.6);
+}
+#period {
+	/* Height and width matches the clock svg */
+	position: absolute;
+	left: calc(50% - 16px);
+	top: 4px;
+	height: 32px;
+	line-height: 32px;
+	width: 32px;
+	text-align: center;
+
+	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	color: #fff;
 }
 
 /*

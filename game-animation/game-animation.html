@@ -25,8 +25,8 @@
 				<div class="home">
 				</div>
 			</div>
-			<svg id="clock">
-			</svg>
+			<svg id="clock"></svg>
+			<span id="period" style="opacity: 0.6;">1</span>
 		</div>
 	</div>
 	<button style="margin: 20px 0; display: none;" onclick="animateGame();">Start animation</button>
@@ -43,7 +43,7 @@ var jsonUrl = "live.json";
 var teamData;
 var shotData;
 var periodDurations; // Play time for each period — in OT, goals will end play early
-var maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60, 5 * 60];
+var maxPeriodDurations = [20 * 60, 20 * 60, 20 * 60];
 
 //
 // Layout variables
@@ -58,6 +58,16 @@ var netX = 25;							// Net's x-offset from svg edges
 var goalieX = 40;						// Goalie barrier's x-offset from svg edges
 var skaterX = 55;						// Skater barrier's x-offset from svg edges
 var colour = ["red", "blue"];			// Colour class for away/home
+
+//
+// Clock variables
+//
+
+var tau = 2 * Math.PI;
+var arc = d3.arc()
+	.innerRadius(12)
+	.outerRadius(14)
+	.startAngle(0);
 
 //
 // Prepare data
@@ -126,7 +136,10 @@ d3.json(jsonUrl, function(error, json) {
 
 function appendSvg() {
 
-	// Set team names and colours
+	//
+	// Set team names and shot tally colours
+	//
+
 	d3.select(".away.header > .abbr").text(teamData[0].abbr);
 	d3.select(".home.header > .abbr").text(teamData[1].abbr);
 	d3.select(".away.header").attr("class", "away header " + teamData[0].colour);
@@ -137,6 +150,20 @@ function appendSvg() {
 	//
 	// Append clock
 	//
+
+	var clock = d3.select("#clock")
+		.attr("width", 32)
+		.attr("height", 32);
+	clock.append("circle")
+		.attr("r", 13)
+		.attr("cx", 16)
+		.attr("cy", 16);
+	// Append path for the elapsed time
+	clock.append("path")
+		.datum({ endAngle: 0 * tau, duration: d3.sum(maxPeriodDurations) })
+		.attr("d", arc)
+		.attr("transform", "translate(16, 16)");
+		
 
 	//
 	// Append rink elements
@@ -329,6 +356,55 @@ function animateGame() {
 	// Disable start button
 	d3.select("button")
 		.attr("disabled", "disabled");
+
+	// Animate clock
+	d3.select("#clock > path").transition()
+		.duration(function(d) { return (d.duration * 1000) / 200; })
+		.ease(d3.easeLinear)
+		.call(arcTween, 1 * tau);
+	function arcTween(transition, newAngle) {
+		transition.attrTween("d", function(d) {
+			var interpolate = d3.interpolate(d.endAngle, newAngle);
+			return function(t) {
+				d.endAngle = interpolate(t);
+				return arc(d);
+			};
+		});
+	}
+
+	// Animate period label
+	var currentPeriod = 1;
+	transitionPeriod();
+
+	function transitionPeriod() {
+		d3.select("#period").transition()
+			.duration(10)
+			.delay(function() {
+				return maxPeriodDurations[currentPeriod - 1] * 1000 / 200;
+			})
+			.style("opacity", 1)
+			.ease(d3.easeQuadOut)
+			.on("end", function() {
+				currentPeriod++;
+				// Update text
+				if (currentPeriod <= periodDurations.length) {
+					d3.select(this).text(currentPeriod);
+				} else {
+					d3.select(this).text("F");
+				}
+
+				// Fade text in
+				d3.select(this).transition()
+					.ease(d3.easeQuadIn)
+					.duration(100)
+					.style("opacity", 0.6);
+
+				// Schedule the next transition
+				if (currentPeriod <= periodDurations.length) {
+					transitionPeriod();
+				}
+			});
+	}
 
 	// Animate shot paths
 	d3.selectAll("path.shot").transition()
