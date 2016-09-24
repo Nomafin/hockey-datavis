@@ -25,7 +25,11 @@
 				<div class="home">
 				</div>
 			</div>
-			<svg id="clock"></svg>
+			<svg id="clock">
+				<defs>
+					<clipPath id="cp-clock"></clipPath>
+				</defs>
+			</svg>
 			<span id="period" style="opacity: 0.6;">1</span>
 		</div>
 	</div>
@@ -154,7 +158,7 @@ function appendSvg() {
 		.attr("width", 32)
 		.attr("height", 32);
 	// Append paths for period lengths
-	d3.select("#clock").selectAll("path")
+	 d3.select("#cp-clock").selectAll("path")
 		.data(maxPeriodDurations.map(function(d, i) {
 			var startElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j < i; }));
 			var endElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j <= i; }));
@@ -166,13 +170,22 @@ function appendSvg() {
 		}))
 		.enter().append("path")
 			.attr("d", arc)
-			.attr("transform", "translate(16, 16)");
+			.style("fill", "#fff");
+
+	// Append path for the total time
+	clock.append("path")
+		.datum({ startAngle: 0, endAngle: tau, duration: d3.sum(maxPeriodDurations) })
+		.attr("d", arc)
+		.attr("transform", "translate(16, 16)")
+		.style("clip-path", "url(#cp-clock)");
+
 	// Append path for the elapsed time
 	clock.append("path")
 		.datum({ startAngle: 0, endAngle: 0 * tau, duration: d3.sum(maxPeriodDurations) })
 		.attr("id", "clock-elapsed")
 		.attr("d", arc)
-		.attr("transform", "translate(16, 16)");
+		.attr("transform", "translate(16, 16)")
+		.style("clip-path", "url(#cp-clock)");
 		
 
 	//
