@@ -95,6 +95,9 @@ d3.json(jsonUrl, function(error, json) {
 		return;
 	}
 
+	// Print game state
+	console.log("GAME STATE: " + json.gameData.status.abstractGameState);
+
 	// Store team and shot data
 	teamData = [{
 		abbr: json.gameData.teams.away.abbreviation.toLowerCase(),
