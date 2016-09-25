@@ -40,18 +40,22 @@
 <script>
 
 //
+// Inputs
+// 
+
+var gameId = 2016070111;
+var colour = ["blue", "red"];	// Colour class for away/home
+var isRegularSeason = true;
+
+//
 // Data variables
 //
 
-var gameId = 2016080111; // OT game
-//var gameId = 2016080105; // SO game
 var jsonUrl = "https://statsapi.web.nhl.com/api/v1/game/" + gameId + "/feed/live";
-var jsonUrl = "live.json"; // Regulation game
 var teamData;
 var shotData;
 var periodDurations; // Play time for each period — in OT, goals will end play early
 var maxPeriodDurations;
-var isRegularSeason = true;
 
 //
 // Layout variables
@@ -65,7 +69,6 @@ var y = h/2;							// Center of nets, goalie barriers, skater barriers
 var netX = 25;							// Net's x-offset from svg edges
 var goalieX = 40;						// Goalie barrier's x-offset from svg edges
 var skaterX = 55;						// Skater barrier's x-offset from svg edges
-var colour = ["red", "blue"];			// Colour class for away/home
 
 //
 // Clock variables
