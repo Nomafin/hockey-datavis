@@ -115,6 +115,9 @@ body {
 *
 */
 
+path.shot {
+	stroke-width: 1.25;
+}
 line.barrier-goalie.blue,
 line.barrier-skater.blue,
 path.shot.blue {
