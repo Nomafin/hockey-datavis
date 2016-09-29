@@ -167,20 +167,20 @@ circle.shot.red {
 /* Blue */
 
 .header.blue span {
-	color: #18A0E6;
+	color: #1CB3FF;
 }
 .shot-tallies .blue .bullet {
-	background: #18A0E6;
+	background: #1CB3FF;
 }
 line.barrier-goalie.blue,
 line.barrier-skater.blue,
 path.shot.blue,
 path.net.blue {
-	stroke: #18A0E6;
+	stroke: #1CB3FF;
 }
 circle.shot.blue {
-	stroke: #18A0E6;
-	fill: #18A0E6;
+	stroke: #1CB3FF;
+	fill: #1CB3FF;
 }
 
 /* Yellow */
@@ -205,18 +205,18 @@ circle.shot.yellow {
 /* Green */
 
 .header.green span {
-	color: #0CCE6B;
+	color: #45D16F;
 }
 .shot-tallies .green .bullet {
-	background: #0CCE6B;
+	background: #45D16F;
 }
 line.barrier-goalie.green,
 line.barrier-skater.green,
 path.shot.green,
 path.net.green {
-	stroke: #0CCE6B;
+	stroke: #45D16F;
 }
 circle.shot.green {
-	stroke: #0CCE6B;
-	fill: #0CCE6B;
+	stroke: #45D16F;
+	fill: #45D16F;
 }
