@@ -55,7 +55,7 @@
 // 
 
 var gameId = 2016070111;
-var colour = ["blue", "red"];	// Colour class for away/home
+var colour = ["blue", "green"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 
 //
@@ -87,7 +87,6 @@ var skaterX = 55;						// Skater barrier's x-offset from svg edges
 //
 
 var msPerTick = 200;
-msPerTick = 1000;
 var tau = 2 * Math.PI;
 var arc = d3.arc()
 	.innerRadius(12)
@@ -208,15 +207,23 @@ function appendSvg() {
 	// Set colours for shot path gradients
 	//
 
-	var red = "#F35747";
-	var blue = "#18A0E6";
-	if (colour[0] === "blue") {
-		d3.select("#l-to-r").selectAll("stop").attr("stop-color", blue);
-		d3.select("#r-to-l").selectAll("stop").attr("stop-color", red);
-	} else {
-		d3.select("#l-to-r").selectAll("stop").attr("stop-color", red);
-		d3.select("#r-to-l").selectAll("stop").attr("stop-color", blue);		
-	}
+	colour.forEach(function(colourClass, i) {
+		var hexCode = "#fff";
+		if (colourClass === "red") {
+			hexCode = "#F35747";
+		} else if (colourClass === "blue") {
+			hexCode = "#18A0E6";
+		} else if (colourClass === "yellow") {
+			hexCode = "#F7B538";
+		} else if (colourClass === "green") {
+			hexCode = "#0CCE6B";
+		}
+		if (i === 0) {
+			d3.select("#l-to-r").selectAll("stop").attr("stop-color", hexCode);
+		} else if (i === 1) {
+			d3.select("#r-to-l").selectAll("stop").attr("stop-color", hexCode);
+		}
+	});
 
 	//
 	// Append clock
