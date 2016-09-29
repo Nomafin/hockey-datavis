@@ -148,20 +148,20 @@ path.shot.animated-dashoffset {
 /* Red */
 
 .header.red span {
-	color: #F35747;
+	color: #F45846;
 }
 .shot-tallies .red .bullet {
-	background: #F35747;
+	background: #F45846;
 }
 line.barrier-goalie.red,
 line.barrier-skater.red,
 path.shot.red,
 path.net.red {
-	stroke: #F35747;
+	stroke: #F45846;
 }
 circle.shot.red {
-	stroke: #F35747;
-	fill: #F35747;
+	stroke: #F45846;
+	fill: #F45846;
 }
 
 /* Blue */
@@ -186,20 +186,20 @@ circle.shot.blue {
 /* Yellow */
 
 .header.yellow span {
-	color: #F7B538;
+	color: #EDB347;
 }
 .shot-tallies .yellow .bullet {
-	background: #F7B538;
+	background: #EDB347;
 }
 line.barrier-goalie.yellow,
 line.barrier-skater.yellow,
 path.shot.yellow,
 path.net.yellow {
-	stroke: #F7B538;
+	stroke: #EDB347;
 }
 circle.shot.yellow {
-	stroke: #F7B538;
-	fill: #F7B538;
+	stroke: #EDB347;
+	fill: #EDB347;
 }
 
 /* Green */
