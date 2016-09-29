@@ -85,6 +85,8 @@ var skaterX = 55;						// Skater barrier's x-offset from svg edges
 // Clock variables
 //
 
+var msPerTick = 200;
+msPerTick = 10000;
 var tau = 2 * Math.PI;
 var arc = d3.arc()
 	.innerRadius(12)
@@ -445,7 +447,7 @@ function animateGame() {
 
 	// Animate clock
 	d3.select("#clock-elapsed").transition()
-		.duration(function(d) { return (d.duration * 1000) / 200; })
+		.duration(function(d) { return (d.duration * 1000) / msPerTick; })
 		.ease(d3.easeLinear)
 		.call(arcTween, (d3.sum(periodDurations) / d3.sum(maxPeriodDurations)) * tau);
 	function arcTween(transition, newAngle) {
@@ -468,7 +470,7 @@ function animateGame() {
 			.delay(function() {
 				// Since SO is 0 seconds long, add a dummy 10ms delay
 				// Without this dummy delay, the transition from SO to final won't happen
-				return d3.max([0, maxPeriodDurations[currentPeriod - 1] * 1000 / 200]);
+				return d3.max([0, maxPeriodDurations[currentPeriod - 1] * 1000 / msPerTick]);
 			})
 			.style("opacity", 1)
 			.ease(d3.easeQuadOut)
@@ -505,7 +507,7 @@ function animateGame() {
 			for (var i = 0; i < d.about.period - 1; i++) {
 				delay += periodDurations[i];
 			}
-			return (delay * 1000) / 200;
+			return (delay * 1000) / msPerTick;
 		})
 		.style("stroke-opacity", 0.5)
 		.on("start", function() {
@@ -541,7 +543,7 @@ function animateGame() {
 			} else if (type === "blocked_shot") {
 				offset += 0;
 			}
-			return offset + (delay * 1000) / 200;
+			return offset + (delay * 1000) / msPerTick;
 		})
 		.attr("r", function(d) {
 			var type = d.result.eventTypeId.toLowerCase();
@@ -601,6 +603,15 @@ function endGame() {
 			d3.select(".home.header > .score").text(score[1]);
 		}
 	}
+
+	// Determine winner
+	var winner;
+	if (score[0] > score[1]) {
+		winner = "away";
+	} else if (score[1] > score[0]) {
+		winner = "home";
+	}
+	console.log(winner);
 }
 </script>
 </html>
