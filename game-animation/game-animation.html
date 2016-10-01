@@ -57,6 +57,7 @@
 var gameId = 2016010038;
 var colour = ["green", "blue"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
+var msPerTick = 400;
 
 //
 // Data variables
@@ -85,7 +86,6 @@ var skaterX = 55;						// Skater barrier's x-offset from svg edges
 // Clock variables
 //
 
-var msPerTick = 200;
 var tau = 2 * Math.PI;
 var arc = d3.arc()
 	.innerRadius(12)
@@ -96,7 +96,7 @@ var arc = d3.arc()
 //
 
 var score = [0, 0];
-var loser;
+var loser;				// Stored as "home"/"away"
 
 //
 // Prepare data
@@ -659,7 +659,8 @@ function removeLoser() {
 	
 	var loserElements = d3.selectAll(".net." + loser + ", .barrier-goalie." + loser + ", .barrier-skater." + loser);
 	var loserOpacity = 1;
-	flashOut();
+	// flashOut();
+	explodeLoser();
 
 	// Set the loser's svg element opacity to 0
 	// Decrease loserOpacity before making the loser's svg element reappear
@@ -689,6 +690,56 @@ function removeLoser() {
 			.on("end", function() {
 				flashOut();
 			});		
+	}
+
+	// Draw an explosion when loser disappears
+	function explodeLoser() {
+
+		// Shrink the loser
+		console.log(loser);
+
+		var net = d3.select(".net." + loser);
+		var centre;
+		if (loser === "away") {
+			centre = [teamData[0].nx - 9, y];
+		} else if (loser === "home") {
+			centre = [teamData[0].nx + 9, y];
+		}
+		net.transition()
+			.delay(100)
+			.duration(1000)
+			.ease(d3.easeElasticIn)
+			.attr("transform", "translate(" + centre[0] + "," + centre[1] + ") scale(0)")
+			.on("end", function() {
+				var explosion = d3.select("svg > g").append("circle")
+					.attr("r", 0)
+					.attr("cx", centre[0])
+					.attr("cy", centre[1])
+					.attr("class", function() {
+						if (loser === "away") {
+							return "end-explosion " + colour[0];
+						} else if (loser === "home") {
+							return "end-explosion " + colour[1];
+						}
+					})
+					.style("fill", "none")
+					.attr("stroke-width", 0);
+				explosion.transition()
+					.duration(1000)
+					.attr("r", w + 60)
+					.attr("stroke-width", 60);
+				// Fade out the goalie barrier when the explosion hits it
+				d3.select(".barrier-goalie." + loser).transition()
+					.duration(100)
+					.delay(200)
+					.style("opacity", 0);
+				// Fade out the skater barrier when the explosion hits it
+				d3.select(".barrier-skater." + loser).transition()
+					.duration(100)
+					.delay(300)
+					.style("opacity", 0);
+
+			});
 	}
 }
 </script>

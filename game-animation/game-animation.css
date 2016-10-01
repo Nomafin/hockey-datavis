@@ -156,7 +156,8 @@ path.shot.animated-dashoffset {
 line.barrier-goalie.red,
 line.barrier-skater.red,
 path.shot.red,
-path.net.red {
+path.net.red,
+circle.end-explosion.red {
 	stroke: #F45846;
 }
 circle.shot.red {
@@ -175,7 +176,8 @@ circle.shot.red {
 line.barrier-goalie.blue,
 line.barrier-skater.blue,
 path.shot.blue,
-path.net.blue {
+path.net.blue,
+circle.end-explosion.blue {
 	stroke: #1CB3FF;
 }
 circle.shot.blue {
@@ -194,7 +196,8 @@ circle.shot.blue {
 line.barrier-goalie.yellow,
 line.barrier-skater.yellow,
 path.shot.yellow,
-path.net.yellow {
+path.net.yellow,
+circle.end-explosion.yellow {
 	stroke: #EDB347;
 }
 circle.shot.yellow {
@@ -213,7 +216,8 @@ circle.shot.yellow {
 line.barrier-goalie.green,
 line.barrier-skater.green,
 path.shot.green,
-path.net.green {
+path.net.green,
+circle.end-explosion.green {
 	stroke: #45D16F;
 }
 circle.shot.green {
