@@ -54,8 +54,8 @@
 // Inputs
 // 
 
-var gameId = 2016010038;
-var colour = ["green", "blue"];	// Colour class for away/home: red, blue, yellow, green
+var gameId = 2016010039;
+var colour = ["blue", "yellow"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 var msPerTick = 400;
 
@@ -703,7 +703,7 @@ function removeLoser() {
 		if (loser === "away") {
 			centre = [teamData[0].nx - 9, y];
 		} else if (loser === "home") {
-			centre = [teamData[0].nx + 9, y];
+			centre = [teamData[1].nx + 9, y];
 		}
 		net.transition()
 			.delay(100)
