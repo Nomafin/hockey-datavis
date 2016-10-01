@@ -220,3 +220,7 @@ circle.shot.green {
 	stroke: #45D16F;
 	fill: #45D16F;
 }
+
+.shot-tallies .bullet.goal {
+	background: #fff !important;
+}

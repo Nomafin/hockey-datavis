@@ -54,7 +54,7 @@
 // Inputs
 // 
 
-var gameId = 2016070111;
+var gameId = 2016010038;
 var colour = ["green", "blue"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 
@@ -67,7 +67,6 @@ var teamData;
 var shotData;
 var periodDurations; // Play time for each period — in OT, goals will end play early
 var maxPeriodDurations;
-var loser;
 
 //
 // Layout variables
@@ -93,10 +92,11 @@ var arc = d3.arc()
 	.outerRadius(14);
 
 //
-// Header variables
+// Variables used for animation
 //
 
 var score = [0, 0];
+var loser;
 
 //
 // Prepare data
@@ -111,7 +111,7 @@ d3.json(jsonUrl, function(error, json) {
 	// Print game state
 	console.log("GAME STATE: " + json.gameData.status.abstractGameState);
 
-	// Store team and shot data
+	// Store team
 	teamData = [{
 		abbr: json.gameData.teams.away.abbreviation.toLowerCase(),
 		name: json.gameData.teams.away.name.toLowerCase(),
@@ -129,9 +129,12 @@ d3.json(jsonUrl, function(error, json) {
 		sx: w - skaterX,
 		y: y
 	}];
+
+	// Store shot data
 	shotData = json.liveData.plays.allPlays.filter(function(d) {
 		return ["blocked_shot", "missed_shot", "shot", "goal"].indexOf(d.result.eventTypeId.toLowerCase()) >= 0;
 	});
+
 	shotData.forEach(function(d) {
 		d.about.periodTime = jsonTimeToSecs(d.about.periodTime);
 		// For blocked shots, update the team
@@ -237,9 +240,11 @@ function appendSvg() {
 		.data(maxPeriodDurations.map(function(d, i) {
 			var startElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j < i; }));
 			var endElapsed = d3.sum(maxPeriodDurations.filter(function(p, j) { return j <= i; }));
+			// Introduce a gap between periods
+			var gap = 0.07;
 			return {
-				startAngle: (startElapsed / d3.sum(maxPeriodDurations)) * tau + 0.07,
-				endAngle: (endElapsed / d3.sum(maxPeriodDurations)) * tau - 0.07,
+				startAngle: (startElapsed / d3.sum(maxPeriodDurations)) * tau + gap,
+				endAngle: (endElapsed / d3.sum(maxPeriodDurations)) * tau - gap,
 				duration: d
 			};
 		}))
@@ -249,14 +254,22 @@ function appendSvg() {
 
 	// Append path for the total time
 	clock.append("path")
-		.datum({ startAngle: 0, endAngle: tau, duration: d3.sum(maxPeriodDurations) })
+		.datum({
+			startAngle: 0,
+			endAngle: tau,
+			duration: d3.sum(maxPeriodDurations) 
+		})
 		.attr("d", arc)
 		.attr("transform", "translate(16, 16)")
 		.style("clip-path", "url(#cp-clock)");
 
 	// Append path for the elapsed time
 	clock.append("path")
-		.datum({ startAngle: 0, endAngle: 0 * tau, duration: d3.sum(maxPeriodDurations) })
+		.datum({
+			startAngle: 0,
+			endAngle: 0,
+			duration: d3.sum(maxPeriodDurations) 
+		})
 		.attr("id", "clock-elapsed")
 		.attr("d", arc)
 		.attr("transform", "translate(16, 16)")
@@ -320,15 +333,17 @@ function appendSvg() {
 				}
 			})
 			.attr("d", function(d, i) {
+				var netW = 12;
+				var netHalfH = 12;
 				if (i === 0) {
 					return "M" + teamData[0].nx + " " + y
-						+ " L" + (teamData[0].nx - 12) + " " + (y - 8)
-						+ " L" + (teamData[0].nx - 12) + " " + (y + 8)
+						+ " L" + (teamData[0].nx - netW) + " " + (y - netHalfH)
+						+ " L" + (teamData[0].nx - netW) + " " + (y + netHalfH)
 						+ "Z";
 				} else {
 					return "M" + teamData[1].nx + " " + y
-						+ " L" + (teamData[1].nx + 12) + " " + (y - 8)
-						+ " L" + (teamData[1].nx + 12) + " " + (y + 8)
+						+ " L" + (teamData[1].nx + netW) + " " + (y - netHalfH)
+						+ " L" + (teamData[1].nx + netW) + " " + (y + netHalfH)
 						+ "Z";				
 				}
 			});
@@ -347,7 +362,8 @@ function appendSvg() {
 		if (team === teamData[0].name) {
 			start = [teamData[0].nx + 5, y];	// Shift shot start point to right to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[1].nx + 9, y];	// Shift shot end point to right to hit center of net
+				end[0] = teamData[1].nx + 9;	// Shift shot end point to right to hit center of net
+				end[1] = y;
 			} else if (type === "shot") {
 				end[0] = teamData[1].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
@@ -355,12 +371,15 @@ function appendSvg() {
 				end[0] = teamData[1].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [w + Math.random() * margin.right, Math.random() * h];
+				// Missed shots land in the right margin
+				end[0] = w + Math.random() * margin.right;
+				end[1] = Math.random() * h;
 			}
 		} else {
 			start = [teamData[1].nx - 5, y];	// Shift shot start point to left to give some space between it and the net
 			if (type === "goal") {
-				end = [teamData[0].nx - 9, y];	// Shift shot end point to left to hit center of net
+				end[0] = teamData[0].nx - 9;	// Shift shot end point to left to hit center of net
+				end[1] = y;
 			} else if (type === "shot") {
 				end[0] = teamData[0].gx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
@@ -368,7 +387,9 @@ function appendSvg() {
 				end[0] = teamData[0].sx;
 				end[1] = y - (barrierL / 2) + (Math.random() * barrierL);
 			} else if (type === "missed_shot") {
-				end = [0 - Math.random() * margin.left, Math.random() * h];
+				// Missed shots land in the left margin
+				end[0] = 0 - Math.random() * margin.left;
+				end[1] = Math.random() * h;
 			}
 		}
 		
@@ -578,20 +599,32 @@ function animateGame() {
 				.attr("r", 0);
 		})
 		.on("start", function(d) {
-			// Add bullet to shot tally
-			var team = d.team.name.toLowerCase();
-			if (team === teamData[0].name) {
-				d3.select(".shot-tallies .away").append("span")
-					.attr("class", "bullet");
-			} else {
-				d3.select(".shot-tallies .home").append("span")
-					.attr("class", "bullet");
-			}
-			// Update score - exclude shootout goals
-			var type = d.result.eventTypeId.toLowerCase();
-			if (type === "goal") {
-				var periodType = d.about.periodType.toLowerCase();
-				if (periodType !== "shootout") {
+			// Add bullet to shot tally - exclude shootout shots and goals
+			var periodType = d.about.periodType.toLowerCase();
+			if (periodType !== "shootout") {
+				var team = d.team.name.toLowerCase();
+				var type = d.result.eventTypeId.toLowerCase();
+				if (team === teamData[0].name) {
+					d3.select(".shot-tallies .away").append("span")
+						.attr("class", function() {
+							if (type === "goal") {
+								return "bullet goal";
+							} else {
+								return "bullet";
+							}
+						});
+				} else {
+					d3.select(".shot-tallies .home").append("span")
+						.attr("class", function() {
+							if (type === "goal") {
+								return "bullet goal";
+							} else {
+								return "bullet";
+							}
+						});
+				}
+				// Update score
+				if (type === "goal") {
 					if (team === teamData[0].name) {
 						score[0]++;
 						d3.select(".away.header > .score").text(score[0]);
@@ -619,7 +652,7 @@ function endGame() {
 	}
 
 	// Wait before ending the game to give shot transitions time to finish
-	setTimeout(function() { removeLoser(); }, 1000);
+	setTimeout(function() { removeLoser(); }, 100);
 }
 
 function removeLoser() {
@@ -638,12 +671,10 @@ function removeLoser() {
 			.style("opacity", 0)
 			.on("end", function() {
 				if (loserOpacity > 0.5) {
-					loserOpacity -= 0.05;
+					loserOpacity -= 0.025;
 					flashIn();
 				} else {
 					loserElements.style("opacity", 0);
-					// Change body background to cue stop recording
-					d3.select(".container").style("outline", "20px solid #ff00ff");
 				}
 			});		
 	}
