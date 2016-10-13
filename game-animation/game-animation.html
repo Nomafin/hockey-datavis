@@ -54,8 +54,8 @@
 // Inputs
 // 
 
-var gameId = 2016010039;
-var colour = ["blue", "yellow"];	// Colour class for away/home: red, blue, yellow, green
+var gameId = 2016020001;
+var colour = ["blue", "red"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 var msPerTick = 200;
 
@@ -633,6 +633,10 @@ function animateGame() {
 						d3.select(".home.header > .score").text(score[1]);
 					}
 				}
+				// Show goal scorer's name
+				if (type === "goal") {
+					showGoalScorer(d);
+				}
 			}
 		});
 }
@@ -696,7 +700,7 @@ function removeLoser() {
 	function explodeLoser() {
 
 		// Shrink the loser
-		console.log(loser);
+		console.log("Loser: " + loser);
 
 		var net = d3.select(".net." + loser);
 		var centre;
@@ -738,9 +742,39 @@ function removeLoser() {
 					.duration(100)
 					.delay(300)
 					.style("opacity", 0);
-
 			});
 	}
+}
+
+var namesToHighlight = ["Auston Matthews"];
+function showGoalScorer(datapoint) {
+	// players[0] is the scorer for goal events
+	var scorer = datapoint.players[0].player.fullName;
+	if (namesToHighlight.indexOf(scorer) >= 0) {
+		var svg = d3.select("#rink > g");
+		var text = svg.append("text")
+			.attr("x", w / 2)
+			.attr("y", h / 2 + 6)
+			.attr("font-size", 1)
+			.attr("opacity", 0.6)
+			.style("fill", "#fff")
+			.attr("letter-spacing", -3)
+			.style("alignment-baseline", "middle")
+			.style("text-anchor", "middle")
+			.style("font-weight", 900)
+			.text("AUSTON");
+		text.transition()
+			.duration(500)
+			.ease(d3.easeElasticOut)
+			.attr("font-size", 80)
+			.on("end", function() {
+				d3.select(this).transition()
+					.duration(100)
+					.ease(d3.easePolyIn)
+					.attr("opacity", 0);
+			});
+	}
+
 }
 </script>
 </html>
