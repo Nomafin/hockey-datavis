@@ -747,10 +747,12 @@ function removeLoser() {
 }
 
 var namesToHighlight = ["Auston Matthews"];
+var goalCount = 0;
 function showGoalScorer(datapoint) {
 	// players[0] is the scorer for goal events
 	var scorer = datapoint.players[0].player.fullName;
 	if (namesToHighlight.indexOf(scorer) >= 0) {
+		goalCount++;
 		var svg = d3.select("#rink > g");
 		var text = svg.append("text")
 			.attr("x", w / 2)
@@ -762,7 +764,13 @@ function showGoalScorer(datapoint) {
 			.style("alignment-baseline", "middle")
 			.style("text-anchor", "middle")
 			.style("font-weight", 900)
-			.text("AUSTON");
+			.text(function() {
+				if (goalCount === 4) {
+					return "4USTON";
+				} else {
+					return "AUSTON";
+				}
+			});
 		text.transition()
 			.duration(500)
 			.ease(d3.easeElasticOut)
@@ -770,11 +778,10 @@ function showGoalScorer(datapoint) {
 			.on("end", function() {
 				d3.select(this).transition()
 					.duration(100)
-					.ease(d3.easePolyIn)
-					.attr("opacity", 0);
+					.ease(d3.easeExpIn)
+					.attr("font-size", 0);
 			});
 	}
-
 }
 </script>
 </html>
