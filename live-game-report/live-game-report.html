@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Live Game Report</title>
+	<script src="../d3.v4.min.js"></script>
+</head>
+<body>
+	<p id="message"></p>
+</body>
+<script>
+var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020188.HTM";
+d3.html(pbpUrl, function(error, html) {
+	if (error) {
+		d3.select("#message").text("Error getting data.");
+		console.log("Error getting data: " + error);
+	} else {
+		console.log(html);
+		var rows = html.querySelectorAll("tr.evenColor");
+		console.log(rows);
+	}
+});
+</script>
+</html>
