@@ -10,16 +10,95 @@
 	<p id="message"></p>
 </body>
 <script>
+
 var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020188.HTM";
+var dataset = [];
+
 d3.html(pbpUrl, function(error, html) {
 	if (error) {
 		d3.select("#message").text("Error getting data.");
 		console.log("Error getting data: " + error);
 	} else {
 		console.log(html);
-		var rows = html.querySelectorAll("tr.evenColor");
-		console.log(rows);
+		var trs = html.querySelectorAll("tr.evenColor");
+		trs.forEach(function(tr) {
+
+			// Data we want for each event
+			var playId;
+			var period;
+			var strength;
+			var time;
+			var event;
+			var description;
+			var aOnIce = [];
+			var hOnIce = [];
+
+			// Parse data in each of the row's cells
+			tr.querySelectorAll("td.bborder").forEach(function(td, i) {
+				if (i === 0) {
+					playId = parseInt(td.innerHTML);
+				} else if (i === 1) {
+					period = parseInt(td.innerHTML);
+				} else if (i === 2) {
+					strength = td.innerHTML;
+					if (strength === "&nbsp;") {
+						strength = null;
+					}
+				} else if (i === 3) {
+					var string = td.innerHTML;
+					string = string.substring(0, string.indexOf("<br>"));
+					var mm = parseInt(string.substring(0, string.indexOf(":")));
+					var ss = parseInt(string.substring(string.indexOf(":") + 1));
+					var time = 60 * mm + ss;
+				} else if (i === 4) {
+					event = td.innerHTML;
+				} else if (i === 5) {
+					description = td.innerHTML;
+				} else if (i === 6) {
+					// Away player information is stored in font elements
+					td.querySelectorAll("font").forEach(function(font) {
+						aOnIce.push(parsePlayerInformation(font));
+					});
+				} else if (i === 7) {
+					// Home player information is stored in font elements
+					td.querySelectorAll("font").forEach(function(font) {
+						hOnIce.push(parsePlayerInformation(font));
+					});
+				}
+			});
+
+			// Store parsed data
+			dataset.push({
+				playId: playId,
+				period: period,
+				strength: strength,
+				time: time,
+				event: event,
+				description: description,
+				aOnIce: aOnIce,
+				hOnIce: hOnIce
+			});
+		});
+		console.log(dataset);
 	}
 });
+
+//
+//
+// Player information is stored in font elements
+// This function parses the information stored in the font element
+//
+//
+
+function parsePlayerInformation(fontElement) {
+	var jersey = fontElement.innerHTML;
+	var name = fontElement.title.substring(fontElement.title.indexOf(" - ") + 3);
+	var position = fontElement.title.substring(0, fontElement.title.indexOf(" - "));	
+	return {
+		jersey: jersey,
+		name: name,
+		position: position
+	};
+}
 </script>
 </html>
