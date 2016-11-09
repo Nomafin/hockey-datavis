@@ -23,48 +23,35 @@ d3.html(pbpUrl, function(error, html) {
 		var trs = html.querySelectorAll("tr.evenColor");
 		trs.forEach(function(tr) {
 
-			// Data we want for each event
-			var playId;
-			var period;
-			var strength;
-			var time;
-			var event;
-			var description;
-			var aOnIce = [];
-			var hOnIce = [];
+			// Parse data in each of the event row's cells
+			var tds = tr.querySelectorAll("td.bborder");
 
-			// Parse data in each of the row's cells
-			tr.querySelectorAll("td.bborder").forEach(function(td, i) {
-				if (i === 0) {
-					playId = parseInt(td.innerHTML);
-				} else if (i === 1) {
-					period = parseInt(td.innerHTML);
-				} else if (i === 2) {
-					strength = td.innerHTML;
-					if (strength === "&nbsp;") {
-						strength = null;
-					}
-				} else if (i === 3) {
-					var string = td.innerHTML;
-					string = string.substring(0, string.indexOf("<br>"));
-					var mm = parseInt(string.substring(0, string.indexOf(":")));
-					var ss = parseInt(string.substring(string.indexOf(":") + 1));
-					var time = 60 * mm + ss;
-				} else if (i === 4) {
-					event = td.innerHTML;
-				} else if (i === 5) {
-					description = td.innerHTML;
-				} else if (i === 6) {
-					// Away player information is stored in font elements
-					td.querySelectorAll("font").forEach(function(font) {
-						aOnIce.push(parsePlayerInformation(font));
-					});
-				} else if (i === 7) {
-					// Home player information is stored in font elements
-					td.querySelectorAll("font").forEach(function(font) {
-						hOnIce.push(parsePlayerInformation(font));
-					});
-				}
+			var playId = parseInt(tds[0].innerHTML);
+			var period = parseInt(tds[1].innerHTML);
+
+			var strength = tds[2].innerHTML;
+			if (strength === "&nbsp;") {
+				strength = null;
+			}
+
+			var timeString = tds[3].innerHTML;
+			timeString = timeString.substring(0, timeString.indexOf("<br>"));
+			var mm = parseInt(timeString.substring(0, timeString.indexOf(":")));
+			var ss = parseInt(timeString.substring(timeString.indexOf(":") + 1));
+			var time = 60 * mm + ss;
+
+			var event = tds[4].innerHTML;
+			var description = tds[5].innerHTML;
+
+			// Away and home player information is stored in font elements
+			var aOnIce = [];
+			tds[6].querySelectorAll("font").forEach(function(font) {
+				aOnIce.push(parsePlayerInformation(font));
+			});
+
+			var hOnIce = [];
+			tds[7].querySelectorAll("font").forEach(function(font) {
+				hOnIce.push(parsePlayerInformation(font));
 			});
 
 			// Store parsed data
