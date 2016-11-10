@@ -94,6 +94,23 @@ function calculateTeamAndPlayerStats() {
 	// Loop through each event and increment corsi, goals, etc.
 
 	// Calculate shifts and calculate tois
+	// forEach event:
+	//
+	//		if thisEvent.aOnIce > thisEvent.hOnIce:
+	//			aTeamToiPp += nextEventTime - thisEventTime;
+	//			hTeamToiSh += nextEventTime - thisEventTime;
+	// 		else if thisEvent.aOnIce < thisEvent.hOnIce:
+	//			hTeamToiPp += nextEventTime - thisEventTime;
+	//			aTeamToiSh += nextEventTime - thisEventTime;
+	//
+	//		forEach player in event:
+	//			thisPlayerToi += nextEventTime - thisEventTime;
+	//			
+	//			if thisEvent.aOnIce > thisEvent.hOnIce:
+	//				thisPlayerToiSh += nextEventTime - thisEventTime;
+	// 			else if thisEvent.aOnIce < thisEvent.hOnIce:
+	//				thisPlayerToiPp += nextEventTime - thisEventTime;
+
 }
 
 //
