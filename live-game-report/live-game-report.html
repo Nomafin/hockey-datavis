@@ -12,7 +12,9 @@
 <script>
 
 var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020188.HTM";
-var dataset = [];
+var eventData = [];
+var playerData = [[], []];
+var teamData = [];
 
 d3.html(pbpUrl, function(error, html) {
 	if (error) {
@@ -20,6 +22,18 @@ d3.html(pbpUrl, function(error, html) {
 		console.log("Error getting data: " + error);
 	} else {
 		console.log(html);
+
+		//
+		// Parse and store team data
+		//
+
+		teamData.push(parseTeamInformation(html.querySelector("#Visitor"), "away"));
+		teamData.push(parseTeamInformation(html.querySelector("#Home"), "home"));
+
+		//
+		// Parse and store event data
+		//
+
 		var trs = html.querySelectorAll("tr.evenColor");
 		trs.forEach(function(tr) {
 
@@ -29,7 +43,7 @@ d3.html(pbpUrl, function(error, html) {
 			var playId = parseInt(tds[0].innerHTML);
 			var period = parseInt(tds[1].innerHTML);
 
-			var strength = tds[2].innerHTML;
+			var strength = tds[2].innerHTML.toLowerCase();
 			if (strength === "&nbsp;") {
 				strength = null;
 			}
@@ -40,35 +54,47 @@ d3.html(pbpUrl, function(error, html) {
 			var ss = parseInt(timeString.substring(timeString.indexOf(":") + 1));
 			var time = 60 * mm + ss;
 
-			var event = tds[4].innerHTML;
+			var event = tds[4].innerHTML.toLowerCase();
 			var description = tds[5].innerHTML;
+
+			// Get the team and players responsible for the event
+			var team = getEventTeam(event, description);
 
 			// Away and home player information is stored in font elements
 			var aOnIce = [];
 			tds[6].querySelectorAll("font").forEach(function(font) {
-				aOnIce.push(parsePlayerInformation(font));
+				aOnIce.push(parsePlayerInformation(font, "away"));
 			});
 
 			var hOnIce = [];
 			tds[7].querySelectorAll("font").forEach(function(font) {
-				hOnIce.push(parsePlayerInformation(font));
+				hOnIce.push(parsePlayerInformation(font, "home"));
 			});
 
 			// Store parsed data
-			dataset.push({
+			eventData.push({
 				playId: playId,
 				period: period,
 				strength: strength,
 				time: time,
 				event: event,
 				description: description,
+				team: team,
 				aOnIce: aOnIce,
 				hOnIce: hOnIce
 			});
 		});
-		console.log(dataset);
+		
+		calculateTeamAndPlayerStats();
 	}
 });
+
+function calculateTeamAndPlayerStats() {
+	console.log(eventData);
+	// Loop through each event and increment corsi, goals, etc.
+
+	// Calculate shifts and calculate tois
+}
 
 //
 //
@@ -77,15 +103,120 @@ d3.html(pbpUrl, function(error, html) {
 //
 //
 
-function parsePlayerInformation(fontElement) {
-	var jersey = fontElement.innerHTML;
-	var name = fontElement.title.substring(fontElement.title.indexOf(" - ") + 3);
-	var position = fontElement.title.substring(0, fontElement.title.indexOf(" - "));	
+function parsePlayerInformation(fontElement, venue) {
+	var jersey = parseInt(fontElement.innerHTML);
+	var name = fontElement.title.substring(fontElement.title.indexOf(" - ") + 3).toLowerCase();
+	var position = fontElement.title.substring(0, fontElement.title.indexOf(" - ")).toLowerCase();	
+	var player = {
+			jersey: jersey,
+			name: name,
+			position: position,
+			cf: 0,
+			ca: 0,
+			gf: 0,
+			ga: 0,
+			sf: 0,
+			sa: 0,
+			g: 0,
+			a: 0,
+			toi: 0,
+			ppToi: 0,
+			shToi: 0
+		};
+
+	// Store player information
+	var idx = 0;
+	if (venue === "home") {
+		idx = 1;
+	}
+	if (playerData[idx].filter(function(d) { return d.jersey === jersey; }).length <= 0) {
+		playerData[idx].push(player);
+	}
+
+	return player;
+}
+
+//
+//
+// Team information is stored in table elements
+// This function parses the information stored in the table element
+//
+//
+
+function parseTeamInformation(tableElement, venue) {
+	var teamString = tableElement.querySelector('td[style="font-size: 10px;font-weight:bold"]').innerHTML;
+	var name = teamString.substring(0, teamString.indexOf("<br>")).toLowerCase();
+	var abbreviation;
+	if (name === "carolina hurricanes") { abbreviation = "car"; }
+	else if (name === "columbus blue jackets") { abbreviation = "cbj"; }
+	else if (name === "new jersey devils") { abbreviation = "njd"; }
+	else if (name === "new york islanders") { abbreviation = "nyi"; }
+	else if (name === "new york rangers") { abbreviation = "nyr"; }
+	else if (name === "philadelphia flyers") { abbreviation = "phi"; }
+	else if (name === "pittsburgh penguins") { abbreviation = "pit"; }
+	else if (name === "washington capitals") { abbreviation = "wsh"; }
+	else if (name === "boston bruins") { abbreviation = "bos"; }
+	else if (name === "buffalo sabres") { abbreviation = "buf"; }
+	else if (name === "detroit red wings") { abbreviation = "det"; }
+	else if (name === "florida panthers") { abbreviation = "fla"; }
+	else if (name === "montreal canadiens") { abbreviation = "mtl"; }
+	else if (name === "ottawa senators") { abbreviation = "ott"; }
+	else if (name === "tampa bay lightning") { abbreviation = "tbl"; }
+	else if (name === "toronto maple leafs") { abbreviation = "tor"; }
+	else if (name === "chicago blackhawks") { abbreviation = "chi"; }
+	else if (name === "colorado avalanche") { abbreviation = "col"; }
+	else if (name === "dallas stars") { abbreviation = "dal"; }
+	else if (name === "minnesota wild") { abbreviation = "min"; }
+	else if (name === "nashville predators") { abbreviation = "nsh"; }
+	else if (name === "st. louis blues") { abbreviation = "stl"; }
+	else if (name === "winnipeg jets") { abbreviation = "wpg"; }
+	else if (name === "anaheim ducks") { abbreviation = "ana"; }
+	else if (name === "arizona coyotes") { abbreviation = "ari"; }
+	else if (name === "calgary flames") { abbreviation = "cgy"; }
+	else if (name === "edmonton oilers") { abbreviation = "edm"; }
+	else if (name === "los angeles kings") { abbreviation = "lak"; }
+	else if (name === "san jose sharks") { abbreviation = "sjs"; }
+	else if (name === "vancouver canucks") { abbreviation = "van"; }
 	return {
-		jersey: jersey,
+		venue: venue,
 		name: name,
-		position: position
-	};
+		abbreviation: abbreviation,
+		cf: 0,
+		ca: 0,
+		gf: 0,
+		ga: 0,
+		sf: 0,
+		sa: 0,
+		ppToi: 0,
+		shToi: 0
+	}
+}
+
+//
+//
+// Get the team responsible for the event
+//
+//
+
+function getEventTeam(event, description) {
+	var team = null;
+	if (event === "shot" || event === "miss" || event === "block" || event === "goal") {
+		team = description.substring(0, description.indexOf(" "));
+	}
+	if (team) {
+		team = team.toLowerCase();
+	}
+	// Use new team abbreviations
+	if (team === "l.a") {
+		team = "lak";
+	} else if (name === "s.j") {
+		team = "sjs";
+	} else if (name === "t.b") {
+		team = "tbl";
+	} else if (name === "n.j") {
+		team = "njd";
+	}
+	return team;
 }
 </script>
 </html>
