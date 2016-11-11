@@ -438,8 +438,26 @@ function updatePage() {
 			];
 		});
 	cells = cells.enter().append("td")
+		.style("color", "#212529")
 		.merge(cells)
 			.text(function(d) { return d.value; });
+	cells.attr("data-previous", function(d) {
+		// if (!d3.select(this).attr("data-previous")) {
+		// 	console.log("what");
+		// }
+		if (String(d.value) !== d3.select(this).attr("data-previous")) {
+			d3.select(this).transition()
+				.duration(250)
+				.style("color", "#ff00ff")
+				.on("end", function() {
+					d3.select(this).transition()
+						.duration(250)
+						.delay(250)
+						.style("color", "#212529");
+				});
+		}
+		return d.value;
+	});
 }
 </script>
 </html>
