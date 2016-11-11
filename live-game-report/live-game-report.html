@@ -13,7 +13,7 @@
 	<table class="player-stats" style="width: 100%;">
 		<thead>
 			<th width="36%">AWAY</th>
-			<th width="8%">Points</th>
+			<th width="16%">Points</th>
 			<th width="8%">C</th>
 			<th width="8%">GF</th>
 			<th width="8%">GA</th>
@@ -27,7 +27,7 @@
 	<table class="player-stats" style="width: 100%;">
 		<thead>
 			<th width="36%">HOME</th>
-			<th width="8%">Points</th>
+			<th width="16%">Points</th>
 			<th width="8%">C</th>
 			<th width="8%">GF</th>
 			<th width="8%">GA</th>
@@ -495,7 +495,11 @@ function renderTable() {
 			})
 			.attr("data-previous", function(d) {
 				if (highlightTableChanges) {
-					if (String(d.value) !== d3.select(this).attr("data-previous")) {
+					var newValue = d.value;
+					if (d.column === "points") {
+						newValue = d.value.length;
+					}
+					if (String(newValue) !== d3.select(this).attr("data-previous")) {
 						d3.select(this).transition()
 							.style("background-color", "#fff3bf")
 							.on("end", function() {
@@ -505,7 +509,7 @@ function renderTable() {
 							});
 					}
 				}
-				return d.value;
+				return newValue;
 			});
 
 	// Point badges
