@@ -475,6 +475,9 @@ function renderTable() {
 		});
 	cells = cells.enter().append("td")
 		.style("background-color", "#fff")
+		.attr("class", function(d) { 
+			return d.column;
+		})
 		.merge(cells)
 			.html(function(d) {
 				if (d.column === "player") {
@@ -484,6 +487,8 @@ function renderTable() {
 					return "<span class='player-position'>" + position + "</span>"
 						+ "<span class='player-jersey'>" + d.value[0] + "</span>"
 						+ "<span class='player-name'>" + name + "</span>";
+				} else if (d.column === "points") {
+					// Do nothing
 				} else {
 					return d.value;
 				}
@@ -501,6 +506,22 @@ function renderTable() {
 					}
 				}
 				return d.value;
+			});
+
+	// Point badges
+	var badges = rows.selectAll("td.points").selectAll(".badge")
+		.data(function(d) { return d.value; });
+	badges.enter().append("span")
+		.merge(badges)
+			.attr("class", function(d) {
+				return "badge " + d;
+			})
+			.text(function(d) {
+				if (d === "ev_ig" || d === "sh_ig" || d === "pp_ig") {
+					return "G";
+				} else {
+					return "A";
+				}
 			});
 
 	// For the first render where the table gets appended, don't highlight changes
