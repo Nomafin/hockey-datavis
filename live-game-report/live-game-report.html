@@ -255,7 +255,7 @@ function calculateTeamAndPlayerStats() {
 
 	// Clean up aTeamPpTimeRanges and hTeamPpTimeRanges by joining adjacent ranges
 
-	updatePage();
+	renderTable(false);
 }
 
 //
@@ -419,7 +419,7 @@ function getEventTeam(event, description) {
 //
 //
 
-function updatePage() {
+function renderTable(highlightChanges) {
 	var tables = d3.selectAll("table.player-stats")
 		.data(playerData);
 	var rows = tables.select("tbody").selectAll("tr")
@@ -428,12 +428,12 @@ function updatePage() {
 		.merge(rows);
 	rows.exit().remove();
 
-	// TODO
+	// TODO: Replace G and A columns with a Points columns
 	// Append badges for goals and assists (G) (A)
 	// Use dark fill with light text for even strength points
 	// Use yellow fill with dark text special teams points
 	// For data-previous, store and compare the total number of points
-	
+
 	var cells = rows.selectAll("td")
 		.data(function(row) {
 			return [
@@ -451,22 +451,22 @@ function updatePage() {
 	cells = cells.enter().append("td")
 		.style("background-color", "#fff")
 		.merge(cells)
-			.text(function(d) { return d.value; });
-	cells.attr("data-previous", function(d) {
-		// if (!d3.select(this).attr("data-previous")) {
-		// 	console.log("what");
-		// }
-		if (String(d.value) !== d3.select(this).attr("data-previous")) {
-			d3.select(this).transition()
-				.style("background-color", "#fff3bf")
-				.on("end", function() {
-					d3.select(this).transition()
-						.delay(100)
-						.style("background-color", "#fff");
-				});
-		}
-		return d.value;
-	});
+			.text(function(d) { return d.value; })
+			.attr("data-previous", function(d) {
+				// Highlight changes
+				if (highlightChanges) {
+					if (String(d.value) !== d3.select(this).attr("data-previous")) {
+						d3.select(this).transition()
+							.style("background-color", "#fff3bf")
+							.on("end", function() {
+								d3.select(this).transition()
+									.delay(100)
+									.style("background-color", "#fff");
+							});
+					}
+				}
+				return d.value;
+			});
 }
 </script>
 </html>
