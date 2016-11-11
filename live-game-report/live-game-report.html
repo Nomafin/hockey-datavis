@@ -4,104 +4,142 @@
 <head>
 	<meta charset="utf-8">
 	<title>Live Game Report</title>
+	<link rel="stylesheet" type="text/css" href="live-game-report.css">
 	<script src="../d3.v4.min.js"></script>
 </head>
 <body>
+	<button onclick="fetchData();">Refresh</button>
 	<p id="message"></p>
+	<table class="player-stats" style="width: 100%;">
+		<thead>
+			<th colspan=2 width="37%">Away Players</th>
+			<th width="9%">G</th>
+			<th width="9%">A</th>
+			<th width="9%">GF</th>
+			<th width="9%">GA</th>
+			<th width="9%">CF</th>
+			<th width="9%">CA</th>
+			<th width="9%">TOI</th>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<table class="player-stats" style="width: 100%;">
+		<thead>
+			<th colspan=2 width="37%">Home Players</th>
+			<th width="9%">G</th>
+			<th width="9%">A</th>
+			<th width="9%">GF</th>
+			<th width="9%">GA</th>
+			<th width="9%">CF</th>
+			<th width="9%">CA</th>
+			<th width="9%">TOI</th>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>	
 </body>
 <script>
 
-var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020188.HTM";
+var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020204.HTM";
 var eventData = [];
 var playerData = [[], []];
 var teamData = [];
 
-d3.html(pbpUrl, function(error, html) {
-	if (error) {
-		d3.select("#message").text("Error getting data.");
-		console.log("Error getting data: " + error);
-	} else {
+function fetchData() {
 
-		//
-		// Parse and store team data
-		//
+	// Reset data
+	eventData = [];
+	playerData = [[], []];
+	teamData = [];
 
-		teamData.push(initializeTeamInformation(html.querySelector("#Visitor"), "away"));
-		teamData.push(initializeTeamInformation(html.querySelector("#Home"), "home"));
+	d3.html(pbpUrl, function(error, html) {
+		if (error) {
+			d3.select("#message").text("Error getting data.");
+			console.log("Error getting data: " + error);
+		} else {
 
-		//
-		// Parse and store event data
-		//
+			//
+			// Parse and store team data
+			//
 
-		var trs = html.querySelectorAll("tr.evenColor");
-		trs.forEach(function(tr) {
+			teamData.push(initializeTeamInformation(html.querySelector("#Visitor"), "away"));
+			teamData.push(initializeTeamInformation(html.querySelector("#Home"), "home"));
 
-			// Parse data in each of the event row's cells
-			var tds = tr.querySelectorAll("td.bborder");
+			//
+			// Parse and store event data
+			//
 
-			var playId = parseInt(tds[0].innerHTML);
-			var period = parseInt(tds[1].innerHTML);
+			var trs = html.querySelectorAll("tr.evenColor");
+			trs.forEach(function(tr) {
 
-			var timeString = tds[3].innerHTML;
-			timeString = timeString.substring(0, timeString.indexOf("<br>"));
-			var mm = parseInt(timeString.substring(0, timeString.indexOf(":")));
-			var ss = parseInt(timeString.substring(timeString.indexOf(":") + 1));
-			var time = 60 * mm + ss;
+				// Parse data in each of the event row's cells
+				var tds = tr.querySelectorAll("td.bborder");
 
-			var event = tds[4].innerHTML.toLowerCase();
-			var description = tds[5].innerHTML;
+				var playId = parseInt(tds[0].innerHTML);
+				var period = parseInt(tds[1].innerHTML);
 
-			var strength = tds[2].innerHTML.toLowerCase();
-			if (strength === "&nbsp;") {
-				strength = null;
-			} else if (event === "block") {
-				// For blocked shots, the strength is officially recorded from the blocker's POV
-				// Flip this so it's from the shooter's POV
-				if (strength === "pp") {
-					strength = "sh";
-				} else if (strength === "sh") {
-					strength = "pp";
+				var timeString = tds[3].innerHTML;
+				timeString = timeString.substring(0, timeString.indexOf("<br>"));
+				var mm = parseInt(timeString.substring(0, timeString.indexOf(":")));
+				var ss = parseInt(timeString.substring(timeString.indexOf(":") + 1));
+				var time = 60 * mm + ss;
+
+				var event = tds[4].innerHTML.toLowerCase();
+				var description = tds[5].innerHTML;
+
+				var strength = tds[2].innerHTML.toLowerCase();
+				if (strength === "&nbsp;") {
+					strength = null;
+				} else if (event === "block") {
+					// For blocked shots, the strength is officially recorded from the blocker's POV
+					// Flip this so it's from the shooter's POV
+					if (strength === "pp") {
+						strength = "sh";
+					} else if (strength === "sh") {
+						strength = "pp";
+					}
 				}
-			}
 
-			// Get the team and players responsible for the event
-			var team = getEventTeam(event, description);
-			var venue = null;
-			if (team != null) {
-				venue = teamData.find(function(d) { return d.abbreviation === team; }).venue;
-			}
+				// Get the team and players responsible for the event
+				var team = getEventTeam(event, description);
+				var venue = null;
+				if (team != null) {
+					venue = teamData.find(function(d) { return d.abbreviation === team; }).venue;
+				}
 
-			// Away and home player information is stored in font elements
-			var aOnIce = [];
-			tds[6].querySelectorAll("font").forEach(function(font) {
-				aOnIce.push(parseInt(font.innerHTML));
-				initializePlayerData(font, "away");
+				// Away and home player information is stored in font elements
+				var aOnIce = [];
+				tds[6].querySelectorAll("font").forEach(function(font) {
+					aOnIce.push(parseInt(font.innerHTML));
+					initializePlayerData(font, "away");
+				});
+
+				var hOnIce = [];
+				tds[7].querySelectorAll("font").forEach(function(font) {
+					hOnIce.push(parseInt(font.innerHTML));
+					initializePlayerData(font, "home");
+				});
+
+				// Store parsed data
+				eventData.push({
+					playId: playId,
+					period: period,
+					strength: strength,
+					time: time,
+					event: event,
+					description: description,
+					team: team,
+					venue: venue,
+					aOnIce: aOnIce,
+					hOnIce: hOnIce
+				});
 			});
-
-			var hOnIce = [];
-			tds[7].querySelectorAll("font").forEach(function(font) {
-				hOnIce.push(parseInt(font.innerHTML));
-				initializePlayerData(font, "home");
-			});
-
-			// Store parsed data
-			eventData.push({
-				playId: playId,
-				period: period,
-				strength: strength,
-				time: time,
-				event: event,
-				description: description,
-				team: team,
-				venue: venue,
-				aOnIce: aOnIce,
-				hOnIce: hOnIce
-			});
-		});
-		
-		calculateTeamAndPlayerStats();
-	}
-});
+			
+			calculateTeamAndPlayerStats();
+		}
+	});
+}
 
 function incrementPlayerStat(venue, jersey, stat) {
 	var teamIdx = 0;
@@ -213,6 +251,7 @@ function calculateTeamAndPlayerStats() {
 	// 			else if thisEvent.aOnIce < thisEvent.hOnIce:
 	//				thisPlayerToiPp += nextEventTime - thisEventTime;
 
+	updatePage();
 }
 
 //
@@ -367,6 +406,40 @@ function getEventTeam(event, description) {
 		team = "njd";
 	}
 	return team;
+}
+
+
+//
+//
+// Update page elements
+//
+//
+
+function updatePage() {
+	var tables = d3.selectAll("table.player-stats")
+		.data(playerData);
+	var rows = tables.select("tbody").selectAll("tr")
+		.data(function(d) { return d; }, function(d) { return d.jersey; });
+	rows = rows.enter().append("tr")
+		.merge(rows);
+	rows.exit().remove();
+	var cells = rows.selectAll("td")
+		.data(function(row) {
+			return [
+				{ column: "jersey", value: row.jersey },
+				{ column: "name", value: row.name },
+				{ column: "goals", value: row.ev_ig + row.pp_ig + row.sh_ig },
+				{ column: "assists", value: row.ev_ia + row.pp_ia + row.sh_ia },
+				{ column: "gf", value: row.ev_gf + row.pp_gf + row.sh_gf },
+				{ column: "ga", value: row.ev_ga + row.pp_ga + row.sh_ga },
+				{ column: "cf", value: row.ev_cf + row.pp_cf + row.sh_cf },
+				{ column: "ca", value: row.ev_ca + row.pp_ca + row.sh_ca },
+				{ column: "toi", value: row.ev_toi + row.pp_toi + row.sh_toi },
+			];
+		});
+	cells = cells.enter().append("td")
+		.merge(cells)
+			.text(function(d) { return d.value; });
 }
 </script>
 </html>

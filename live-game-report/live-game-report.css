@@ -1,0 +1,23 @@
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 20px;
+	color: #212529;
+	margin: 20px;
+}
+
+table {
+	border-collapse: collapse;
+	margin-bottom: 40px;
+}
+
+table th,
+table td {
+	text-align: left;
+	padding: 4px 8px 3px 8px;
+	border-bottom: 1px solid #dee2e6;
+}
+
+table td {
+	text-transform: capitalize;
+}
