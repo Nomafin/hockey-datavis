@@ -12,7 +12,7 @@
 	<p id="message"></p>
 	<table class="player-stats" style="width: 100%;">
 		<thead>
-			<th colspan=2 width="37%">Away Players</th>
+			<th colspan=2 width="37%">AWAY</th>
 			<th width="9%">G</th>
 			<th width="9%">A</th>
 			<th width="9%">GF</th>
@@ -26,7 +26,7 @@
 	</table>
 	<table class="player-stats" style="width: 100%;">
 		<thead>
-			<th colspan=2 width="37%">Home Players</th>
+			<th colspan=2 width="37%">HOME</th>
 			<th width="9%">G</th>
 			<th width="9%">A</th>
 			<th width="9%">GF</th>
@@ -438,7 +438,7 @@ function updatePage() {
 			];
 		});
 	cells = cells.enter().append("td")
-		.style("color", "#212529")
+		.style("background-color", "#fff")
 		.merge(cells)
 			.text(function(d) { return d.value; });
 	cells.attr("data-previous", function(d) {
@@ -447,13 +447,11 @@ function updatePage() {
 		// }
 		if (String(d.value) !== d3.select(this).attr("data-previous")) {
 			d3.select(this).transition()
-				.duration(250)
-				.style("color", "#ff00ff")
+				.style("background-color", "#fff3bf")
 				.on("end", function() {
 					d3.select(this).transition()
-						.duration(250)
-						.delay(250)
-						.style("color", "#212529");
+						.delay(100)
+						.style("background-color", "#fff");
 				});
 		}
 		return d.value;
