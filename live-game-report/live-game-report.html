@@ -13,8 +13,7 @@
 	<table class="player-stats" style="width: 100%;">
 		<thead>
 			<th width="36%">AWAY</th>
-			<th width="8%">G</th>
-			<th width="8%">A</th>
+			<th width="8%">Points</th>
 			<th width="8%">C</th>
 			<th width="8%">GF</th>
 			<th width="8%">GA</th>
@@ -28,8 +27,7 @@
 	<table class="player-stats" style="width: 100%;">
 		<thead>
 			<th width="36%">HOME</th>
-			<th width="8%">G</th>
-			<th width="8%">A</th>
+			<th width="8%">Points</th>
 			<th width="8%">C</th>
 			<th width="8%">GF</th>
 			<th width="8%">GA</th>
@@ -457,10 +455,16 @@ function renderTable() {
 
 	var cells = rows.selectAll("td")
 		.data(function(row) {
+			// Create an array of the player's points
+			var points = [];
+			["ev_ig", "pp_ig", "sh_ig", "ev_ia", "pp_ia", "sh_ia"].forEach(function(pointType) {
+				for (var i = 0; i < row[pointType]; i++) {
+					points.push(pointType);
+				}
+			});
 			return [
 				{ column: "player", value: [row.jersey, row.name, row.position] },
-				{ column: "goals", value: row.ev_ig + row.pp_ig + row.sh_ig },
-				{ column: "assists", value: row.ev_ia + row.pp_ia + row.sh_ia },
+				{ column: "points", value: points },
 				{ column: "c", value: row.ev_ic + row.pp_ic + row.sh_ic },
 				{ column: "gf", value: row.ev_gf + row.pp_gf + row.sh_gf },
 				{ column: "ga", value: row.ev_ga + row.pp_ga + row.sh_ga },

@@ -19,7 +19,9 @@ table td {
 }
 
 table thead th:first-child,
-table tbody td:first-child {
+table tbody td:first-child,
+table thead th:nth-child(2),
+table tbody td:nth-child(2) {
 	text-align: left;
 }
 
