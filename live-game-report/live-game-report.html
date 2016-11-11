@@ -21,14 +21,13 @@ d3.html(pbpUrl, function(error, html) {
 		d3.select("#message").text("Error getting data.");
 		console.log("Error getting data: " + error);
 	} else {
-		console.log(html);
 
 		//
 		// Parse and store team data
 		//
 
-		teamData.push(parseTeamInformation(html.querySelector("#Visitor"), "away"));
-		teamData.push(parseTeamInformation(html.querySelector("#Home"), "home"));
+		teamData.push(initializeTeamInformation(html.querySelector("#Visitor"), "away"));
+		teamData.push(initializeTeamInformation(html.querySelector("#Home"), "home"));
 
 		//
 		// Parse and store event data
@@ -43,11 +42,6 @@ d3.html(pbpUrl, function(error, html) {
 			var playId = parseInt(tds[0].innerHTML);
 			var period = parseInt(tds[1].innerHTML);
 
-			var strength = tds[2].innerHTML.toLowerCase();
-			if (strength === "&nbsp;") {
-				strength = null;
-			}
-
 			var timeString = tds[3].innerHTML;
 			timeString = timeString.substring(0, timeString.indexOf("<br>"));
 			var mm = parseInt(timeString.substring(0, timeString.indexOf(":")));
@@ -57,18 +51,37 @@ d3.html(pbpUrl, function(error, html) {
 			var event = tds[4].innerHTML.toLowerCase();
 			var description = tds[5].innerHTML;
 
+			var strength = tds[2].innerHTML.toLowerCase();
+			if (strength === "&nbsp;") {
+				strength = null;
+			} else if (event === "block") {
+				// For blocked shots, the strength is officially recorded from the blocker's POV
+				// Flip this so it's from the shooter's POV
+				if (strength === "pp") {
+					strength = "sh";
+				} else if (strength === "sh") {
+					strength = "pp";
+				}
+			}
+
 			// Get the team and players responsible for the event
 			var team = getEventTeam(event, description);
+			var venue = null;
+			if (team != null) {
+				venue = teamData.find(function(d) { return d.abbreviation === team; }).venue;
+			}
 
 			// Away and home player information is stored in font elements
 			var aOnIce = [];
 			tds[6].querySelectorAll("font").forEach(function(font) {
-				aOnIce.push(parsePlayerInformation(font, "away"));
+				aOnIce.push(parseInt(font.innerHTML));
+				initializePlayerData(font, "away");
 			});
 
 			var hOnIce = [];
 			tds[7].querySelectorAll("font").forEach(function(font) {
-				hOnIce.push(parsePlayerInformation(font, "home"));
+				hOnIce.push(parseInt(font.innerHTML));
+				initializePlayerData(font, "home");
 			});
 
 			// Store parsed data
@@ -80,6 +93,7 @@ d3.html(pbpUrl, function(error, html) {
 				event: event,
 				description: description,
 				team: team,
+				venue: venue,
 				aOnIce: aOnIce,
 				hOnIce: hOnIce
 			});
@@ -89,9 +103,97 @@ d3.html(pbpUrl, function(error, html) {
 	}
 });
 
+function incrementPlayerStat(venue, jersey, stat) {
+	var teamIdx = 0;
+	if (venue === "home") {
+		teamIdx = 1;
+	}
+	var player = playerData[teamIdx].find(function(d) { return d.jersey === jersey; });
+	player[stat]++;
+	return;
+}
+
 function calculateTeamAndPlayerStats() {
-	console.log(eventData);
-	// Loop through each event and increment corsi, goals, etc.
+
+	eventData.forEach(function(ev, i) {
+
+		//
+		// Increment counts for individual stats: goals scored, assists, individual corsi, penalties
+		//
+
+		if (ev.event === "goal") {
+			// Increment goals and corsis for scorer
+			var string = ev.description.substring(ev.description.indexOf("#") + 1, ev.description.indexOf(", "));
+			var jersey = parseInt(string.substring(0, string.indexOf(" ")));
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ig");
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic");
+
+			// Increment assists
+			var string = ev.description.substring(ev.description.indexOf("Assist"));
+			var strings = string.split("; ");
+			strings.forEach(function(s) {
+				var jerseyString = s.substring(s.indexOf("#") + 1);
+				var jersey = parseInt(jerseyString.substring(0, jerseyString.indexOf(" ")));
+				incrementPlayerStat(ev.venue, jersey, ev.strength + "_ia");
+			});
+		} else if (ev.event === "shot" || ev.event === "block" || ev.event === "miss") {
+			// Increment corsis for shooter
+			var string = ev.description.substring(ev.description.indexOf("#") + 1);
+			var jersey = parseInt(string.substring(0, string.indexOf(" ")));
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic");
+		}
+
+		//
+		// Increment counts for on-ice events: corsis, shots, goals
+		//
+
+		if (ev.event === "goal" || ev.event === "shot" || ev.event === "block" || ev.event === "miss") {
+
+			// Increment AWAY players' stats
+			var strength = ev.strength;
+			var statSuffix = "f";
+			if (ev.venue === "home") {
+				// If the home team took the shot, then flip the strength and stat
+				statSuffix = "a";
+				if (ev.strength === "pp") {
+					strength = "sh";
+				} else if (ev.strength === "sh") {
+					strength = "pp";
+				}
+			}
+			ev.aOnIce.forEach(function(playerJersey) {
+				incrementPlayerStat("away", playerJersey, strength + "_c" + statSuffix);
+				if (ev.event === "goal") {
+					incrementPlayerStat("away", playerJersey, strength + "_g" + statSuffix);
+					incrementPlayerStat("away", playerJersey, strength + "_s" + statSuffix);
+				} else if (ev.event === "shot") {
+					incrementPlayerStat("away", playerJersey, strength + "_s" + statSuffix);
+				}
+			});
+
+			// Increment HOME players' stats
+			var strength = ev.strength;
+			var statSuffix = "f";
+			if (ev.venue === "away") {
+				// If the away team took the shot, then flip the strength and stat
+				statSuffix = "a";
+				if (ev.strength === "pp") {
+					strength = "sh";
+				} else if (ev.strength === "sh") {
+					strength = "pp";
+				}
+			}
+			ev.hOnIce.forEach(function(playerJersey) {
+				incrementPlayerStat("home", playerJersey, strength + "_c" + statSuffix);
+				if (ev.event === "goal") {
+					incrementPlayerStat("home", playerJersey, strength + "_g" + statSuffix);
+					incrementPlayerStat("home", playerJersey, strength + "_s" + statSuffix);
+				} else if (ev.event === "shot") {
+					incrementPlayerStat("home", playerJersey, strength + "_s" + statSuffix);
+				}
+			});
+		}
+	});
 
 	// Calculate shifts and calculate tois
 	// forEach event:
@@ -116,11 +218,11 @@ function calculateTeamAndPlayerStats() {
 //
 //
 // Player information is stored in font elements
-// This function parses the information stored in the font element
+// This function parses the information stored in the font element and creates a player object to record stats
 //
 //
 
-function parsePlayerInformation(fontElement, venue) {
+function initializePlayerData(fontElement, venue) {
 	var jersey = parseInt(fontElement.innerHTML);
 	var name = fontElement.title.substring(fontElement.title.indexOf(" - ") + 3).toLowerCase();
 	var position = fontElement.title.substring(0, fontElement.title.indexOf(" - ")).toLowerCase();	
@@ -128,17 +230,36 @@ function parsePlayerInformation(fontElement, venue) {
 			jersey: jersey,
 			name: name,
 			position: position,
-			cf: 0,
-			ca: 0,
-			gf: 0,
-			ga: 0,
-			sf: 0,
-			sa: 0,
-			g: 0,
-			a: 0,
-			toi: 0,
-			ppToi: 0,
-			shToi: 0
+			ev_cf: 0,
+			pp_cf: 0,
+			sh_cf: 0,
+			ev_ca: 0,
+			pp_ca: 0,
+			sh_ca: 0,
+			ev_sf: 0,
+			pp_sf: 0,
+			sh_sf: 0,
+			ev_sa: 0,
+			pp_sa: 0,
+			sh_sa: 0,
+			ev_gf: 0,
+			pp_gf: 0,
+			sh_gf: 0,
+			ev_ga: 0,
+			pp_ga: 0,
+			sh_ga: 0,
+			ev_toi: 0,
+			pp_toi: 0,
+			sh_toi: 0,
+			ev_ig: 0,
+			pp_ig: 0,
+			sh_ig: 0,
+			ev_ic: 0,
+			pp_ic: 0,
+			sh_ic: 0,
+			ev_ia: 0,
+			pp_ia: 0,
+			sh_ia: 0,
 		};
 
 	// Store player information
@@ -146,21 +267,21 @@ function parsePlayerInformation(fontElement, venue) {
 	if (venue === "home") {
 		idx = 1;
 	}
-	if (playerData[idx].filter(function(d) { return d.jersey === jersey; }).length <= 0) {
+	if (!playerData[idx].find(function(d) { return d.jersey === jersey; })) {
 		playerData[idx].push(player);
 	}
 
-	return player;
+	return;
 }
 
 //
 //
 // Team information is stored in table elements
-// This function parses the information stored in the table element
+// This function parses the information stored in the table element and creates a team object to record stats
 //
 //
 
-function parseTeamInformation(tableElement, venue) {
+function initializeTeamInformation(tableElement, venue) {
 	var teamString = tableElement.querySelector('td[style="font-size: 10px;font-weight:bold"]').innerHTML;
 	var name = teamString.substring(0, teamString.indexOf("<br>")).toLowerCase();
 	var abbreviation;
@@ -198,14 +319,26 @@ function parseTeamInformation(tableElement, venue) {
 		venue: venue,
 		name: name,
 		abbreviation: abbreviation,
-		cf: 0,
-		ca: 0,
-		gf: 0,
-		ga: 0,
-		sf: 0,
-		sa: 0,
-		ppToi: 0,
-		shToi: 0
+		ev_cf: 0,
+		pp_cf: 0,
+		sh_cf: 0,
+		ev_ca: 0,
+		pp_ca: 0,
+		sh_ca: 0,
+		ev_sf: 0,
+		pp_sf: 0,
+		sh_sf: 0,
+		ev_sa: 0,
+		pp_sa: 0,
+		sh_sa: 0,
+		ev_gf: 0,
+		pp_gf: 0,
+		sh_gf: 0,
+		ev_ga: 0,
+		pp_ga: 0,
+		sh_ga: 0,
+		pp_toi: 0,
+		sh_toi: 0
 	}
 }
 
