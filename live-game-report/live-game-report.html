@@ -109,15 +109,15 @@ function fetchData() {
 				}
 
 				// Away and home player information is stored in font elements
-				var aOnIce = [];
+				var awayOnIce = [];
 				tds[6].querySelectorAll("font").forEach(function(font) {
-					aOnIce.push(parseInt(font.innerHTML));
+					awayOnIce.push(parseInt(font.innerHTML));
 					initializePlayerData(font, "away");
 				});
 
-				var hOnIce = [];
+				var homeOnIce = [];
 				tds[7].querySelectorAll("font").forEach(function(font) {
-					hOnIce.push(parseInt(font.innerHTML));
+					homeOnIce.push(parseInt(font.innerHTML));
 					initializePlayerData(font, "home");
 				});
 
@@ -131,24 +131,14 @@ function fetchData() {
 					description: description,
 					team: team,
 					venue: venue,
-					aOnIce: aOnIce,
-					hOnIce: hOnIce
+					awayOnIce: awayOnIce,
+					homeOnIce: homeOnIce
 				});
 			});
 			
 			calculateTeamAndPlayerStats();
 		}
 	});
-}
-
-function incrementPlayerStat(venue, jersey, stat) {
-	var teamIdx = 0;
-	if (venue === "home") {
-		teamIdx = 1;
-	}
-	var player = playerData[teamIdx].find(function(d) { return d.jersey === jersey; });
-	player[stat]++;
-	return;
 }
 
 function calculateTeamAndPlayerStats() {
@@ -187,48 +177,32 @@ function calculateTeamAndPlayerStats() {
 
 		if (ev.event === "goal" || ev.event === "shot" || ev.event === "block" || ev.event === "miss") {
 
-			// Increment AWAY players' stats
-			var strength = ev.strength;
-			var statSuffix = "f";
-			if (ev.venue === "home") {
-				// If the home team took the shot, then flip the strength and stat
-				statSuffix = "a";
-				if (ev.strength === "pp") {
-					strength = "sh";
-				} else if (ev.strength === "sh") {
-					strength = "pp";
-				}
-			}
-			ev.aOnIce.forEach(function(playerJersey) {
-				incrementPlayerStat("away", playerJersey, strength + "_c" + statSuffix);
-				if (ev.event === "goal") {
-					incrementPlayerStat("away", playerJersey, strength + "_g" + statSuffix);
-					incrementPlayerStat("away", playerJersey, strength + "_s" + statSuffix);
-				} else if (ev.event === "shot") {
-					incrementPlayerStat("away", playerJersey, strength + "_s" + statSuffix);
-				}
-			});
+			["home", "away"].forEach(function(venue) {
 
-			// Increment HOME players' stats
-			var strength = ev.strength;
-			var statSuffix = "f";
-			if (ev.venue === "away") {
-				// If the away team took the shot, then flip the strength and stat
-				statSuffix = "a";
-				if (ev.strength === "pp") {
-					strength = "sh";
-				} else if (ev.strength === "sh") {
-					strength = "pp";
+				// Get arguments to increment stats
+				var strength = ev.strength;
+				var statSuffix = "f";
+
+				// If the team didn't the shot, then flip the strength and stat
+				if (venue !== ev.venue) {
+					statSuffix = "a";
+					if (strength === "pp") {
+						strength = "sh";
+					} else if (strength === "sh") {
+						strength = "pp";
+					}					
 				}
-			}
-			ev.hOnIce.forEach(function(playerJersey) {
-				incrementPlayerStat("home", playerJersey, strength + "_c" + statSuffix);
-				if (ev.event === "goal") {
-					incrementPlayerStat("home", playerJersey, strength + "_g" + statSuffix);
-					incrementPlayerStat("home", playerJersey, strength + "_s" + statSuffix);
-				} else if (ev.event === "shot") {
-					incrementPlayerStat("home", playerJersey, strength + "_s" + statSuffix);
-				}
+
+				// Increment stats
+				ev[venue + "OnIce"].forEach(function(playerJersey) {
+					incrementPlayerStat(venue, playerJersey, strength + "_c" + statSuffix);
+					if (ev.event === "goal") {
+						incrementPlayerStat(venue, playerJersey, strength + "_g" + statSuffix);
+						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix);
+					} else if (ev.event === "shot") {
+						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix);
+					}
+				});
 			});
 		}
 	});
@@ -236,11 +210,11 @@ function calculateTeamAndPlayerStats() {
 	// Calculate shifts and calculate tois
 	// forEach event:
 	//
-	//		if thisEvent.aOnIce > thisEvent.hOnIce:
+	//		if thisEvent.awayOnIce > thisEvent.homeOnIce:
 	//			aTeamToiPp += nextEventTime - thisEventTime;
 	//			hTeamToiSh += nextEventTime - thisEventTime;
 	//			aTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
-	// 		else if thisEvent.aOnIce < thisEvent.hOnIce:
+	// 		else if thisEvent.awayOnIce < thisEvent.homeOnIce:
 	//			hTeamToiPp += nextEventTime - thisEventTime;
 	//			aTeamToiSh += nextEventTime - thisEventTime;
 	//			hTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
@@ -248,14 +222,31 @@ function calculateTeamAndPlayerStats() {
 	//		forEach player in event:
 	//			thisPlayerToi += nextEventTime - thisEventTime;
 	//			
-	//			if thisEvent.aOnIce > thisEvent.hOnIce:
+	//			if thisEvent.awayOnIce > thisEvent.homeOnIce:
 	//				thisPlayerToiSh += nextEventTime - thisEventTime;
-	// 			else if thisEvent.aOnIce < thisEvent.hOnIce:
+	// 			else if thisEvent.awayOnIce < thisEvent.homeOnIce:
 	//				thisPlayerToiPp += nextEventTime - thisEventTime;
 
 	// Clean up aTeamPpTimeRanges and hTeamPpTimeRanges by joining adjacent ranges
 
 	renderTable(false);
+
+	//
+	// Increment the specified stat for the specified player
+	// venue: player's venue ('home', 'away')
+	// jersey: player's jersey number
+	// stat: stat to increment
+	//
+
+	function incrementPlayerStat(venue, jersey, stat) {
+		var teamIdx = 0;
+		if (venue === "home") {
+			teamIdx = 1;
+		}
+		var player = playerData[teamIdx].find(function(d) { return d.jersey === jersey; });
+		player[stat]++;
+		return;
+	}
 }
 
 //
