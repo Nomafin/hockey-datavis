@@ -12,28 +12,30 @@
 	<p id="message"></p>
 	<table class="player-stats" style="width: 100%;">
 		<thead>
-			<th colspan=2 width="37%">AWAY</th>
-			<th width="9%">G</th>
-			<th width="9%">A</th>
-			<th width="9%">GF</th>
-			<th width="9%">GA</th>
-			<th width="9%">CF</th>
-			<th width="9%">CA</th>
-			<th width="9%">TOI</th>
+			<th width="36%">AWAY</th>
+			<th width="8%">G</th>
+			<th width="8%">A</th>
+			<th width="8%">C</th>
+			<th width="8%">GF</th>
+			<th width="8%">GA</th>
+			<th width="8%">CF</th>
+			<th width="8%">CA</th>
+			<th width="8%">TOI</th>
 		</thead>
 		<tbody>
 		</tbody>
 	</table>
 	<table class="player-stats" style="width: 100%;">
 		<thead>
-			<th colspan=2 width="37%">HOME</th>
-			<th width="9%">G</th>
-			<th width="9%">A</th>
-			<th width="9%">GF</th>
-			<th width="9%">GA</th>
-			<th width="9%">CF</th>
-			<th width="9%">CA</th>
-			<th width="9%">TOI</th>
+			<th width="36%">HOME</th>
+			<th width="8%">G</th>
+			<th width="8%">A</th>
+			<th width="8%">C</th>
+			<th width="8%">GF</th>
+			<th width="8%">GA</th>
+			<th width="8%">CF</th>
+			<th width="8%">CA</th>
+			<th width="8%">TOI</th>
 		</thead>
 		<tbody>
 		</tbody>
@@ -456,10 +458,10 @@ function renderTable() {
 	var cells = rows.selectAll("td")
 		.data(function(row) {
 			return [
-				{ column: "jersey", value: row.jersey },
-				{ column: "name", value: row.name },
+				{ column: "player", value: [row.jersey, row.name, row.position] },
 				{ column: "goals", value: row.ev_ig + row.pp_ig + row.sh_ig },
 				{ column: "assists", value: row.ev_ia + row.pp_ia + row.sh_ia },
+				{ column: "c", value: row.ev_ic + row.pp_ic + row.sh_ic },
 				{ column: "gf", value: row.ev_gf + row.pp_gf + row.sh_gf },
 				{ column: "ga", value: row.ev_ga + row.pp_ga + row.sh_ga },
 				{ column: "cf", value: row.ev_cf + row.pp_cf + row.sh_cf },
@@ -470,7 +472,18 @@ function renderTable() {
 	cells = cells.enter().append("td")
 		.style("background-color", "#fff")
 		.merge(cells)
-			.text(function(d) { return d.value; })
+			.html(function(d) {
+				if (d.column === "player") {
+					// var name = d.value[1].substring(0, 1) + ".&nbsp;" +  d.value[1].substring(d.value[1].indexOf(" ") + 1);
+					var name = d.value[1].substring(d.value[1].indexOf(" ") + 1);
+					var position = d.value[2].substring(0, 1);
+					return "<span class='player-position'>" + position + "</span>"
+						+ "<span class='player-jersey'>" + d.value[0] + "</span>"
+						+ "<span class='player-name'>" + name + "</span>";
+				} else {
+					return d.value;
+				}
+			})
 			.attr("data-previous", function(d) {
 				if (highlightTableChanges) {
 					if (String(d.value) !== d3.select(this).attr("data-previous")) {

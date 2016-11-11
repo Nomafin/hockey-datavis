@@ -13,11 +13,36 @@ table {
 
 table th,
 table td {
-	text-align: left;
+	text-align: right;
 	padding: 6px 8px 5px 8px;
-	border-bottom: 1px solid #dee2e6;
+	border-bottom: 1px solid #e9ecef;
 }
 
-table td {
+table thead th:first-child,
+table tbody td:first-child {
+	text-align: left;
+}
+
+table td .player-jersey {
+	display: inline-block;
+	vertical-align: top;
+	width: 28px;
+}
+
+table td .player-name {
+	display: inline-block;
+	vertical-align: top;
 	text-transform: capitalize;
+	font-weight: 700;
+}
+
+table td .player-position {
+	display: inline-block;
+	vertical-align: top;
+	text-transform: uppercase;
+	background: #e9ecef;
+	text-align: center;
+	border-radius: 2px;
+	width: 20px;
+	margin: 0 12px 0 0;
 }
