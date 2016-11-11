@@ -239,9 +239,11 @@ function calculateTeamAndPlayerStats() {
 	//		if thisEvent.aOnIce > thisEvent.hOnIce:
 	//			aTeamToiPp += nextEventTime - thisEventTime;
 	//			hTeamToiSh += nextEventTime - thisEventTime;
+	//			aTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
 	// 		else if thisEvent.aOnIce < thisEvent.hOnIce:
 	//			hTeamToiPp += nextEventTime - thisEventTime;
 	//			aTeamToiSh += nextEventTime - thisEventTime;
+	//			hTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
 	//
 	//		forEach player in event:
 	//			thisPlayerToi += nextEventTime - thisEventTime;
@@ -250,6 +252,8 @@ function calculateTeamAndPlayerStats() {
 	//				thisPlayerToiSh += nextEventTime - thisEventTime;
 	// 			else if thisEvent.aOnIce < thisEvent.hOnIce:
 	//				thisPlayerToiPp += nextEventTime - thisEventTime;
+
+	// Clean up aTeamPpTimeRanges and hTeamPpTimeRanges by joining adjacent ranges
 
 	updatePage();
 }
@@ -423,6 +427,13 @@ function updatePage() {
 	rows = rows.enter().append("tr")
 		.merge(rows);
 	rows.exit().remove();
+
+	// TODO
+	// Append badges for goals and assists (G) (A)
+	// Use dark fill with light text for even strength points
+	// Use yellow fill with dark text special teams points
+	// For data-previous, store and compare the total number of points
+	
 	var cells = rows.selectAll("td")
 		.data(function(row) {
 			return [
