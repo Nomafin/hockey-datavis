@@ -46,6 +46,10 @@ var eventData = [];
 var playerData = [[], []];
 var teamData = [];
 
+var highlightTableChanges = false;
+
+fetchData();
+
 function fetchData() {
 
 	// Reset data
@@ -193,7 +197,7 @@ function calculateTeamAndPlayerStats() {
 					}					
 				}
 
-				// Increment stats
+				// Increment player stats
 				ev[venue + "OnIce"].forEach(function(playerJersey) {
 					incrementPlayerStat(venue, playerJersey, strength + "_c" + statSuffix);
 					if (ev.event === "goal") {
@@ -203,6 +207,15 @@ function calculateTeamAndPlayerStats() {
 						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix);
 					}
 				});
+
+				// Increment team stats
+				incrementTeamStat(venue, strength + "_c" + statSuffix);
+				if (ev.event === "goal") {
+					incrementTeamStat(venue, strength + "_g" + statSuffix);
+					incrementTeamStat(venue, strength + "_s" + statSuffix);
+				} else if (ev.event === "shot") {
+					incrementTeamStat(venue, strength + "_s" + statSuffix);
+				}
 			});
 		}
 	});
@@ -229,7 +242,7 @@ function calculateTeamAndPlayerStats() {
 
 	// Clean up aTeamPpTimeRanges and hTeamPpTimeRanges by joining adjacent ranges
 
-	renderTable(false);
+	renderTable();
 
 	//
 	// Increment the specified stat for the specified player
@@ -245,6 +258,21 @@ function calculateTeamAndPlayerStats() {
 		}
 		var player = playerData[teamIdx].find(function(d) { return d.jersey === jersey; });
 		player[stat]++;
+		return;
+	}
+
+	//
+	// Increment the specified stat for the specified team
+	// venue: 'home', 'away'
+	// stat: stat to increment
+	//
+
+	function incrementTeamStat(venue, stat) {
+		var teamIdx = 0;
+		if (venue === "home") {
+			teamIdx = 1;
+		}
+		teamData[teamIdx][stat]++;
 		return;
 	}
 }
@@ -410,7 +438,7 @@ function getEventTeam(event, description) {
 //
 //
 
-function renderTable(highlightChanges) {
+function renderTable() {
 	var tables = d3.selectAll("table.player-stats")
 		.data(playerData);
 	var rows = tables.select("tbody").selectAll("tr")
@@ -444,8 +472,7 @@ function renderTable(highlightChanges) {
 		.merge(cells)
 			.text(function(d) { return d.value; })
 			.attr("data-previous", function(d) {
-				// Highlight changes
-				if (highlightChanges) {
+				if (highlightTableChanges) {
 					if (String(d.value) !== d3.select(this).attr("data-previous")) {
 						d3.select(this).transition()
 							.style("background-color", "#fff3bf")
@@ -458,6 +485,10 @@ function renderTable(highlightChanges) {
 				}
 				return d.value;
 			});
+
+	// For the first render where the table gets appended, don't highlight changes
+	// For following renders, highlight changes
+	highlightTableChanges = true;
 }
 </script>
 </html>
