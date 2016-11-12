@@ -41,12 +41,19 @@
 </body>
 <script>
 
-var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL020204.HTM";
+var gameId = 20194;
+var pbpUrl = "http://www.nhl.com/scores/htmlreports/20162017/PL0" + gameId + ".HTM";
 var eventData = [];
 var playerData = [[], []];
 var teamData = [];
+var periodDurations = [];
 
 var highlightTableChanges = false;
+
+var isRegularSeasonGame = true;
+if (gameId > 30000) {
+	isRegularSeasonGame = false;
+}
 
 fetchData();
 
@@ -56,6 +63,8 @@ function fetchData() {
 	eventData = [];
 	playerData = [[], []];
 	teamData = [];
+	periodDurations = [];
+	var maxPeriod = 0;
 
 	d3.html(pbpUrl, function(error, html) {
 		if (error) {
@@ -82,6 +91,9 @@ function fetchData() {
 
 				var playId = parseInt(tds[0].innerHTML);
 				var period = parseInt(tds[1].innerHTML);
+				if (period > maxPeriod) {
+					maxPeriod = period;
+				}
 
 				var timeString = tds[3].innerHTML;
 				timeString = timeString.substring(0, timeString.indexOf("<br>"));
@@ -140,6 +152,25 @@ function fetchData() {
 				});
 			});
 			
+			// Calculate period durations
+			for (var i = 0; i < maxPeriod; i++) {
+				if (i <= 2) {
+					periodDurations.push(20 * 60);
+				} else if (isRegularSeasonGame) {
+					// Regular season games
+					if (i === 3) {
+						// OT
+						periodDurations.push(5 * 60);
+					} else if (i === 4) {
+						// SO
+						periodDurations.push(0);
+					}
+				} else if (!isRegularSeasonGame) {
+					// Playoff games
+					periodDurations.push(20 * 60);
+				}
+			}
+
 			calculateTeamAndPlayerStats();
 		}
 	});
@@ -149,16 +180,22 @@ function calculateTeamAndPlayerStats() {
 
 	eventData.forEach(function(ev, i) {
 
+		// Skip SO events
+		if (isRegularSeasonGame && ev.period > 4) {
+			return;
+		}
+
 		//
 		// Increment counts for individual stats: goals scored, assists, individual corsi, penalties
 		//
+		console.log(ev.event, ev.period);
 
 		if (ev.event === "goal") {
 			// Increment goals and corsis for scorer
 			var string = ev.description.substring(ev.description.indexOf("#") + 1, ev.description.indexOf(", "));
 			var jersey = parseInt(string.substring(0, string.indexOf(" ")));
-			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ig");
-			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic");
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ig", 1);
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic", 1);
 
 			// Increment assists
 			var string = ev.description.substring(ev.description.indexOf("Assist"));
@@ -166,13 +203,13 @@ function calculateTeamAndPlayerStats() {
 			strings.forEach(function(s) {
 				var jerseyString = s.substring(s.indexOf("#") + 1);
 				var jersey = parseInt(jerseyString.substring(0, jerseyString.indexOf(" ")));
-				incrementPlayerStat(ev.venue, jersey, ev.strength + "_ia");
+				incrementPlayerStat(ev.venue, jersey, ev.strength + "_ia", 1);
 			});
 		} else if (ev.event === "shot" || ev.event === "block" || ev.event === "miss") {
 			// Increment corsis for shooter
 			var string = ev.description.substring(ev.description.indexOf("#") + 1);
 			var jersey = parseInt(string.substring(0, string.indexOf(" ")));
-			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic");
+			incrementPlayerStat(ev.venue, jersey, ev.strength + "_ic", 1);
 		}
 
 		//
@@ -199,26 +236,41 @@ function calculateTeamAndPlayerStats() {
 
 				// Increment player stats
 				ev[venue + "OnIce"].forEach(function(playerJersey) {
-					incrementPlayerStat(venue, playerJersey, strength + "_c" + statSuffix);
+					incrementPlayerStat(venue, playerJersey, strength + "_c" + statSuffix, 1);
 					if (ev.event === "goal") {
-						incrementPlayerStat(venue, playerJersey, strength + "_g" + statSuffix);
-						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix);
+						incrementPlayerStat(venue, playerJersey, strength + "_g" + statSuffix, 1);
+						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix, 1);
 					} else if (ev.event === "shot") {
-						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix);
+						incrementPlayerStat(venue, playerJersey, strength + "_s" + statSuffix, 1);
 					}
 				});
 
 				// Increment team stats
 				incrementTeamStat(venue, strength + "_c" + statSuffix);
 				if (ev.event === "goal") {
-					incrementTeamStat(venue, strength + "_g" + statSuffix);
-					incrementTeamStat(venue, strength + "_s" + statSuffix);
+					incrementTeamStat(venue, strength + "_g" + statSuffix, 1);
+					incrementTeamStat(venue, strength + "_s" + statSuffix, 1);
 				} else if (ev.event === "shot") {
-					incrementTeamStat(venue, strength + "_s" + statSuffix);
+					incrementTeamStat(venue, strength + "_s" + statSuffix, 1);
 				}
 			});
 		}
+
+		//
+		// Increment TOI for players and teams
+		//
+
+		// if (i < eventData.length - 1) {
+		// 	console.log(i, eventData.length);
+		// } else {
+		// 	console.log(ev);
+		// }
+
+		var nextEv = eventData[i + 1];
+		if (nextEv) {
+		}
 	});
+
 
 	// Calculate shifts and calculate tois
 	// forEach event:
@@ -251,13 +303,13 @@ function calculateTeamAndPlayerStats() {
 	// stat: stat to increment
 	//
 
-	function incrementPlayerStat(venue, jersey, stat) {
+	function incrementPlayerStat(venue, jersey, stat, amount) {
 		var teamIdx = 0;
 		if (venue === "home") {
 			teamIdx = 1;
 		}
 		var player = playerData[teamIdx].find(function(d) { return d.jersey === jersey; });
-		player[stat]++;
+		player[stat] += amount;
 		return;
 	}
 
@@ -421,11 +473,11 @@ function getEventTeam(event, description) {
 	// Use new team abbreviations
 	if (team === "l.a") {
 		team = "lak";
-	} else if (name === "s.j") {
+	} else if (team === "s.j") {
 		team = "sjs";
-	} else if (name === "t.b") {
+	} else if (team === "t.b") {
 		team = "tbl";
-	} else if (name === "n.j") {
+	} else if (team === "n.j") {
 		team = "njd";
 	}
 	return team;
