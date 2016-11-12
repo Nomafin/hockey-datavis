@@ -188,7 +188,6 @@ function calculateTeamAndPlayerStats() {
 		//
 		// Increment counts for individual stats: goals scored, assists, individual corsi, penalties
 		//
-		console.log(ev.event, ev.period);
 
 		if (ev.event === "goal") {
 			// Increment goals and corsis for scorer
@@ -260,39 +259,40 @@ function calculateTeamAndPlayerStats() {
 		// Increment TOI for players and teams
 		//
 
-		// if (i < eventData.length - 1) {
-		// 	console.log(i, eventData.length);
-		// } else {
-		// 	console.log(ev);
-		// }
-
 		var nextEv = eventData[i + 1];
-		if (nextEv) {
+		if (nextEv && ev.period === nextEv.period && nextEv.time - ev.time > 0) {
+
+			["away", "home"].forEach(function(venue, teamIdx) {
+
+				// Get strength
+				var strength = "ev";
+				if (venue === "away") {
+					if (ev.awayOnIce.length > ev.homeOnIce.length) {
+						strength = "pp";
+					} else if (ev.awayOnIce.length < ev.homeOnIce.length) {
+						strength = "sh";
+					}
+				} else if (venue === "home") {
+					if (ev.homeOnIce.length > ev.awayOnIce.length) {
+						strength = "pp";
+					} else if (ev.homeOnIce.length < ev.awayOnIce.length) {
+						strength = "sh";
+					}
+				}
+
+				// Increment player TOI
+				ev[venue + "OnIce"].forEach(function(playerJersey) {
+					incrementPlayerStat(venue, playerJersey, strength + "_toi", nextEv.time - ev.time);
+				});
+
+				// Increment team TOI
+				incrementTeamStat(venue, strength + "_toi", nextEv.time - ev.time);
+				if (strength === "pp") {
+					teamData[teamIdx].ppTimeRanges.push([ev.period, ev.time, nextEv.time]);
+				}
+			});
 		}
 	});
-
-
-	// Calculate shifts and calculate tois
-	// forEach event:
-	//
-	//		if thisEvent.awayOnIce > thisEvent.homeOnIce:
-	//			aTeamToiPp += nextEventTime - thisEventTime;
-	//			hTeamToiSh += nextEventTime - thisEventTime;
-	//			aTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
-	// 		else if thisEvent.awayOnIce < thisEvent.homeOnIce:
-	//			hTeamToiPp += nextEventTime - thisEventTime;
-	//			aTeamToiSh += nextEventTime - thisEventTime;
-	//			hTeamPpTimeRanges.push([thisEventTime, nextEventTime]);
-	//
-	//		forEach player in event:
-	//			thisPlayerToi += nextEventTime - thisEventTime;
-	//			
-	//			if thisEvent.awayOnIce > thisEvent.homeOnIce:
-	//				thisPlayerToiSh += nextEventTime - thisEventTime;
-	// 			else if thisEvent.awayOnIce < thisEvent.homeOnIce:
-	//				thisPlayerToiPp += nextEventTime - thisEventTime;
-
-	// Clean up aTeamPpTimeRanges and hTeamPpTimeRanges by joining adjacent ranges
 
 	renderTable();
 
@@ -451,8 +451,10 @@ function initializeTeamInformation(tableElement, venue) {
 		ev_ga: 0,
 		pp_ga: 0,
 		sh_ga: 0,
+		ev_toi: 0,
 		pp_toi: 0,
-		sh_toi: 0
+		sh_toi: 0,
+		ppTimeRanges: []
 	}
 }
 
@@ -541,6 +543,15 @@ function renderTable() {
 						+ "<span class='player-name'>" + name + "</span>";
 				} else if (d.column === "points") {
 					// Do nothing
+				} else if (d.column === "toi") {
+					// Format TOI as mm:ss
+					var mm = Math.floor(d.value / 60);
+					var ss = d.value - (60 * mm);
+					if (ss < 10) {
+						return mm + ":0" + ss;
+					} else {
+ 						return mm + ":" + ss;
+ 					}
 				} else {
 					return d.value;
 				}
