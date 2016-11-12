@@ -3,7 +3,9 @@ body {
 	font-size: 14px;
 	line-height: 20px;
 	color: #212529;
-	margin: 20px;
+	max-width: 680px;
+	margin: 0 auto;
+	padding: 20px;
 }
 
 table {
@@ -35,20 +37,12 @@ table td .player-name {
 	display: inline-block;
 	vertical-align: top;
 	text-transform: capitalize;
-	font-weight: 700;
 }
 
 table td .player-position {
-	background: #dee2e6;
 	display: inline-block;
 	vertical-align: top;
 	text-transform: uppercase;
-	text-align: center;
-	border-radius: 50%;
-	border: 1px solid #dee2e6;
-	margin: 2px 12px 2px 0;
-	line-height: 16px;
-	width: 16px;
 }
 
 table td .badge {

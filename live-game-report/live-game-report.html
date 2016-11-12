@@ -340,6 +340,7 @@ function initializePlayerData(fontElement, venue) {
 	var jersey = parseInt(fontElement.innerHTML);
 	var name = fontElement.title.substring(fontElement.title.indexOf(" - ") + 3).toLowerCase();
 	var position = fontElement.title.substring(0, fontElement.title.indexOf(" - ")).toLowerCase();	
+	position = position.substring(0, 1);
 	var player = {
 			jersey: jersey,
 			name: name,
@@ -496,7 +497,13 @@ function renderTable() {
 	var tables = d3.selectAll("table.player-stats")
 		.data(playerData);
 	var rows = tables.select("tbody").selectAll("tr")
-		.data(function(d) { return d; }, function(d) { return d.jersey; });
+		.data(
+			function(d) {
+				return d.filter(function(p) { return p.position !== "g"; })
+					.sort(function(a, b) { return (b.ev_toi + b.pp_toi + b.sh_toi) - (a.ev_toi + a.pp_toi + a.sh_toi); }); 
+			},
+			function(d) { return d.jersey; }
+		);
 	rows = rows.enter().append("tr")
 		.merge(rows);
 	rows.exit().remove();
@@ -537,10 +544,10 @@ function renderTable() {
 				if (d.column === "player") {
 					// var name = d.value[1].substring(0, 1) + ".&nbsp;" +  d.value[1].substring(d.value[1].indexOf(" ") + 1);
 					var name = d.value[1].substring(d.value[1].indexOf(" ") + 1);
-					var position = d.value[2].substring(0, 1);
-					return "<span class='player-position'>" + position + "</span>"
-						+ "<span class='player-jersey'>" + d.value[0] + "</span>"
-						+ "<span class='player-name'>" + name + "</span>";
+					return "<span class='player-name'>" + name + "</span> "
+						//+ "<span class='player-jersey'>" + d.value[0] + "</span>"
+						+ "<span class='player-position'>(" + d.value[2] + ")</span>";
+						//return "<span class='player-name'>" + d.value[1] + "</span>";
 				} else if (d.column === "points") {
 					// Do nothing
 				} else if (d.column === "toi") {
