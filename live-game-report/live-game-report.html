@@ -494,12 +494,13 @@ function renderTable() {
 				}
 			})
 			.attr("data-previous", function(d) {
+				var newValue = d.value;
+				if (d.column === "points") {
+					newValue = d.value.length;
+				}
+				newValue = String(newValue);
 				if (highlightTableChanges) {
-					var newValue = d.value;
-					if (d.column === "points") {
-						newValue = d.value.length;
-					}
-					if (String(newValue) !== d3.select(this).attr("data-previous")) {
+					if (newValue !== d3.select(this).attr("data-previous")) {
 						d3.select(this).transition()
 							.style("background-color", "#fff3bf")
 							.on("end", function() {
