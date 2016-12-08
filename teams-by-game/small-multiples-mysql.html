@@ -11,34 +11,33 @@
 <body>
 	<div class="corsi">
 		<div class="intro">
-			<h1>5-ON-5 CORSI DIFFERENTIALS<br>Lines show score-adjusted values.</h1>
+			<h1>5-ON-5 CORSI DIFFERENTIALS<br>Lines show score-adjusted values. Wins are shaded gray.</h1>
 		</div>
 	</div>
 </body>
 <script>
-
-/*****
-
-Run this query in the Postgres db to produce stats.csv:
-
-SELECT r.datetime, s.game_id, team, score_sit, sf, sa, bsf, bsa, msf, msa
-FROM game_stats AS s
-INNER JOIN game_results AS r ON s.game_id = r.game_id
-where strength_sit = 'ev5'
-
-*****/
-
 var dataset;
 
 d3.csv("stats.csv", function(data) {
 		dataset = data;
 		prepareData();
 	}).row(function(r) {
+		var hFinal = +r.hFinal;
+		var aFinal = +r.aFinal;
+
+		var result = "l";
+		if (r.iceSit === "home" && hFinal > aFinal) {
+			result = "w";
+		} else if (r.iceSit === "away" && aFinal > hFinal) {
+			result = "w";
+		}
+
 		return {
-			"date": new Date(r.date),
+			"date": +r.date,
 			"team": r.team,
-			"gameId": +r.game_id,
-			"scoreSit": +r.score_sit,
+			"gameId": +r.gameId,
+			"result": result,
+			"scoreSit": +r.scoreSit,
 			"cf": (+r.sf) + (+r.msf) + (+r.bsf),
 			"ca": (+r.sa) + (+r.msa) + (+r.bsa)
 		}
@@ -61,9 +60,10 @@ function prepareData() {
 	});
 
 	// For each game, record the total corsi differential (raw and adjusted)
-	// Also record the date
+	// Also record the win/loss result and date
 	dataset.forEach(function(team) {
 		team.values.forEach(function(game) {
+			game.result = game.values[0].result;
 			game.date = game.values[0].date;
 			game.cf = d3.sum(game.values, function(d) { return d.cf; });
 			game.ca = d3.sum(game.values, function(d) { return d.ca; });
@@ -89,9 +89,11 @@ function prepareData() {
 	});
 
 	// For each team, record the total corsi differential after each game (raw and adjusted) in an array
+	// Also record an array of win/loss results
 	dataset.forEach(function(team) {
 		team.cDiffsRaw = [];
 		team.cDiffsAdj = [];
+		team.results = [];
 		var runningDiffRaw = 0;
 		var runningDiffAdj = 0;
 		team.values.forEach(function(game) {
@@ -99,6 +101,7 @@ function prepareData() {
 			runningDiffAdj += game.cfAdj - game.caAdj;
 			team.cDiffsRaw.push(runningDiffRaw);
 			team.cDiffsAdj.push(runningDiffAdj);
+			team.results.push(game.result);
 		});
 	});
 
@@ -145,7 +148,7 @@ function appendCards() {
 function appendCharts() {
 
 	var margin = {top: 0, right: 0, bottom: 0, left: 0};
-	var pxPerGame = 3;
+	var pxPerGame = 1;
 	var h;
 	var w;
 
@@ -201,7 +204,7 @@ function appendCharts() {
 
 	// Append clip-paths for each team's area graph
 	var area = d3.svg.area()
-		// .interpolate("step-after")
+		.interpolate("step-after")
 	    .x(function(d, i) { return x(i); })
 	    .y0(y(0))
 	    .y1(function(d) { return y(d); });
@@ -215,6 +218,26 @@ function appendCharts() {
 	var svgs = d3.selectAll("svg").append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top +")");
 	
+	//
+	//
+	// Append points timeline
+	//
+	//
+
+	var ptArea = d3.svg.area()
+		.interpolate("step-after")
+	    .x(function(d, i) { return x(i); })
+	    .y0(0)
+	    .y1(function(d) {
+	 		// y1 is added to y0 - so if y1 is positive, y1 will drawn below y0
+	    	if (d === "w") { return h; }
+	    	else { return 0; }
+	    });
+	svgs.append("path")
+		.datum(function(d) { return d.results; })
+		.attr("class", "pts")
+		.attr("d", ptArea);
+
 	// Append a blue rectangle for the positive area, then apply the clip-path
 	svgs.append("rect")
 		.attr("class", "blue bg")
