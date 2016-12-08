@@ -11,7 +11,7 @@
 <body>
 	<div class="corsi">
 		<div class="intro">
-			<h1>5-ON-5 CORSI DIFFERENTIALS<br>Lines show score-adjusted values.</h1>
+			<h1>5-ON-5 CORSI DIFFERENTIALS<br>Lines show score-adjusted values</h1>
 		</div>
 	</div>
 </body>
@@ -24,7 +24,8 @@ Run this query in the Postgres db to produce stats.csv:
 SELECT r.datetime, s.game_id, team, score_sit, sf, sa, bsf, bsa, msf, msa
 FROM game_stats AS s
 INNER JOIN game_results AS r ON s.game_id = r.game_id
-where strength_sit = 'ev5'
+WHERE strength_sit = 'ev5'
+AND player_id < 2
 
 *****/
 
@@ -35,7 +36,7 @@ d3.csv("stats.csv", function(data) {
 		prepareData();
 	}).row(function(r) {
 		return {
-			"date": new Date(r.date),
+			"datetime": new Date(r.datetime),
 			"team": r.team,
 			"gameId": +r.game_id,
 			"scoreSit": +r.score_sit,
@@ -52,19 +53,23 @@ function prepareData() {
 		.key(function(d) { return d.gameId; })
 		.entries(dataset);
 
+	console.log(dataset);
+
 	// Sort each team's games by date (earliest to latest)
 	dataset.forEach(function(team) {
 		team.values.sort(function(gameA, gameB) {
 			// Get the date from the first strSit in each game
-			return gameA.values[0].date - gameB.values[0].date;
+			return gameA.values[0].datetime - gameB.values[0].datetime;
 		});
 	});
+
+
 
 	// For each game, record the total corsi differential (raw and adjusted)
 	// Also record the date
 	dataset.forEach(function(team) {
 		team.values.forEach(function(game) {
-			game.date = game.values[0].date;
+			game.datetime = game.values[0].datetime;
 			game.cf = d3.sum(game.values, function(d) { return d.cf; });
 			game.ca = d3.sum(game.values, function(d) { return d.ca; });
 			game.cfAdj = d3.sum(game.values, function(d) {
@@ -108,13 +113,13 @@ function prepareData() {
 	});
 
 	// For each team, copy the last data point so that the 'step-after' interpolation shows the last step
-	dataset.forEach(function(team) {
-		var lastVal = team.cDiffsRaw[team.cDiffsRaw.length - 1];
-		team.cDiffsRaw.push(lastVal);
+	// dataset.forEach(function(team) {
+	// 	var lastVal = team.cDiffsRaw[team.cDiffsRaw.length - 1];
+	// 	team.cDiffsRaw.push(lastVal);
 
-		lastVal = team.cDiffsAdj[team.cDiffsAdj.length - 1];
-		team.cDiffsAdj.push(lastVal);;
-	});
+	// 	lastVal = team.cDiffsAdj[team.cDiffsAdj.length - 1];
+	// 	team.cDiffsAdj.push(lastVal);;
+	// });
 
 	appendCards();
 };
