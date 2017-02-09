@@ -54,8 +54,8 @@
 // Inputs
 // 
 
-var gameId = 2016020391;
-var colour = ["green", "blue"];	// Colour class for away/home: red, blue, yellow, green
+var gameId = 2016020774;
+var colour = ["blue", "yellow"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 var msPerTick = 200;
 
@@ -747,7 +747,7 @@ function removeLoser() {
 }
 
 //var namesToHighlight = ["Auston Matthews"];
-var namesToHighlight = [];
+var namesToHighlight = ["Patrick Marleau"];
 var goalCount = 0;
 function showGoalScorer(datapoint) {
 	// players[0] is the scorer for goal events
@@ -767,9 +767,13 @@ function showGoalScorer(datapoint) {
 			.style("font-weight", 900)
 			.text(function() {
 				if (goalCount === 4) {
-					return "4USTON";
+					return "M42L34U";
+				} else if (goalCount === 3) {
+					return "MA2L3AU";
+				} else if (goalCount === 2) {
+					return "MA2LEAU";
 				} else {
-					return "AUSTON";
+					return "MARLEAU";
 				}
 			});
 		text.transition()
