@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Player production</title>
+	<link href="http://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet" type="text/css">
+	<script src="../d3.v4.min.js" charset="utf-8"></script>
+	<style>
+	body {
+		font-family: "Roboto Mono", sans-serif;
+		color: #353b3b;
+		margin-bottom: 12px;
+	}
+	h1 {
+		font-size: 14px;
+		line-height: 20px;
+		font-weight: 400;
+		margin: 16px;
+	}
+	.team.card {
+		display: inline-block;
+		margin: 12px 16px;
+	}
+	h3 {
+		font-size: 14px;
+		line-height: 16px;
+		font-weight: 400;
+		margin: 0;
+		text-transform: uppercase;
+	}
+	.bar {
+		fill: #6ec59c;
+	}
+	.gridline {
+		stroke: #cccdcd;
+		stroke-opacity: 0.6;
+		stroke-width: 1;
+		shape-rendering: crispEdges;
+	}
+	.label {
+		font-size: 11px;
+		text-anchor: end;
+		alignment-baseline: hanging;
+		fill: #696e6e;
+	}
+	</style>
+</head>
+<body>
+	<h1>Top 15 goal scorers per team</h1>
+</body>
+<script>
+
+var teams;
+
+d3.json("players.json", function(error, json) {
+
+	var players = json.players;
+
+	// Calculate primary points for all players (all situations)
+	players.forEach(function(d) { 
+		//d.p1 = d.stats.all.ig + d.stats.all.ia1;
+		d.p1 = d.stats.all.ig;
+	});
+
+	// Nest players by team
+	teams = d3.nest()
+		.key(function(d) { return d.teams[d.teams.length - 1]; })
+		.entries(json.players);
+	
+	// Sort players by points in all situations
+	// Take the top X players for each team
+	// Store teams' total points
+	teams.forEach(function(t) {
+		t.values.sort(function(a, b) { return b.p1 - a.p1; });
+		t.values = t.values.slice(0, 15);
+		t.totalP1 = d3.sum(t.values, function(d) { return d.p1; });
+	});
+
+	// Sort teams by total points (descending)
+	teams.sort(function(a, b) { return b.totalP1 - a.totalP1; });
+
+	appendCards();
+});
+
+function appendCards() {
+
+	// Append cards
+	d3.select("body").selectAll(".team.card")
+		.data(teams)
+		.enter().append("div")
+		.attr("class", "team card");
+
+	appendCharts();
+}
+
+function appendCharts() {
+	
+	// svg dimensions
+	var margin = {top: 2, right: 0, bottom: 2, left: 0};
+	var height = 80;
+	var width = 120;
+
+	// Set y scale
+	var maxP1 = d3.max(teams, function(t) {
+		return d3.max(t.values, function(p) {
+			return p.p1;
+		});
+	});
+	var y = d3.scaleLinear()
+		.domain([0, maxP1])
+		.range([height, 0]);
+
+	// Set x scale
+	var x = d3.scaleLinear()
+		.domain([0, 14])
+		.range([0, 112]);
+
+	// Append svgs
+	var svgs = d3.selectAll(".team.card").append("svg")
+		.attr("height", (height + margin.top + margin.bottom) + "px")
+		.attr("width", (width + margin.left + margin.right) + "px")
+		.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// Append gridlines
+	var gridData = [10, 20, 30];
+	var lines = svgs.selectAll(".gridline")
+		.data(gridData)
+		.enter().append("line")
+			.attr("class", "gridline")
+			.attr("x1", 0)
+			.attr("x2", width)
+			.attr("y1", function(d) { return y(d); })
+			.attr("y2", function(d) { return y(d); });
+
+	// Append gridline labels
+	var labels = d3.select(".team.card").select("svg").select("g").selectAll(".label")
+		.data(gridData)
+		.enter().append("text")
+			.attr("class", "label")
+			.attr("x", width)
+			.attr("y", function(d) { return y(d); })
+			.text(function(d) { return d; });
+
+	// Append bars
+	var bars = svgs.selectAll(".bar")
+		.data(function(t) { return t.values; })
+		.enter().append("rect")
+			.attr("class", "bar")
+			.attr("x", function(d, i) { return x(i); })
+			.attr("y", function(d) { return y(d.p1); })
+			.attr("height", function(d) { return height - y(d.p1); })
+			.attr("width", 7)
+			.append("title")
+				.text(function(d) { return d.first + " " + d.last + ": " + d.p1; });
+			
+	
+	appendTitles();
+}
+
+function appendTitles() {
+	d3.selectAll(".card").append("h3")
+		.text(function(d) { return d.key + " " + d.totalP1; });
+}
+</script>
+</html>
