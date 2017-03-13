@@ -20,7 +20,7 @@
 					<stop offset="60%" stop-color="#fff" stop-opacity="1"/>
 					<stop offset="100%" stop-color="#fff" stop-opacity="0.25"/>
 				</linearGradient>
-			</defs>			
+			</defs>
 		</svg>
 		<div style="border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 9px; position: relative;">
 			<div class="away header">
@@ -52,10 +52,10 @@
 
 //
 // Inputs
-// 
+//
 
-var gameId = 2016020774;
-var colour = ["blue", "yellow"];	// Colour class for away/home: red, blue, yellow, green
+var gameId = 2016020885;
+var colour = ["red", "blue"];	// Colour class for away/home: red, blue, yellow, green
 var isRegularSeason = true;
 var msPerTick = 200;
 
@@ -257,7 +257,7 @@ function appendSvg() {
 		.datum({
 			startAngle: 0,
 			endAngle: tau,
-			duration: d3.sum(maxPeriodDurations) 
+			duration: d3.sum(maxPeriodDurations)
 		})
 		.attr("d", arc)
 		.attr("transform", "translate(16, 16)")
@@ -268,7 +268,7 @@ function appendSvg() {
 		.datum({
 			startAngle: 0,
 			endAngle: 0,
-			duration: d3.sum(maxPeriodDurations) 
+			duration: d3.sum(maxPeriodDurations)
 		})
 		.attr("id", "clock-elapsed")
 		.attr("d", arc)
@@ -278,7 +278,7 @@ function appendSvg() {
 	//
 	// Append rink elements
 	//
-	
+
 	var svg = d3.select("#rink")
 		.attr("width", w + margin.left + margin.right)
 		.attr("height", h + margin.top + margin.bottom)
@@ -344,7 +344,7 @@ function appendSvg() {
 					return "M" + teamData[1].nx + " " + y
 						+ " L" + (teamData[1].nx + netW) + " " + (y - netHalfH)
 						+ " L" + (teamData[1].nx + netW) + " " + (y + netHalfH)
-						+ "Z";				
+						+ "Z";
 				}
 			});
 
@@ -392,7 +392,7 @@ function appendSvg() {
 				end[1] = Math.random() * h;
 			}
 		}
-		
+
 		// Generate arc
 		var end2 = [0, 0];
 		end2[1] = Math.random() * (0.7 * h);						// Extent of y-deviation
@@ -660,7 +660,7 @@ function endGame() {
 }
 
 function removeLoser() {
-	
+
 	var loserElements = d3.selectAll(".net." + loser + ", .barrier-goalie." + loser + ", .barrier-skater." + loser);
 	var loserOpacity = 1;
 	// flashOut();
@@ -681,7 +681,7 @@ function removeLoser() {
 				} else {
 					loserElements.style("opacity", 0);
 				}
-			});		
+			});
 	}
 
 	// Set the loser's svg element opaciy to loserOpacity
@@ -693,7 +693,7 @@ function removeLoser() {
 			.style("opacity", loserOpacity)
 			.on("end", function() {
 				flashOut();
-			});		
+			});
 	}
 
 	// Draw an explosion when loser disappears
