@@ -6,6 +6,17 @@
   <script src='../d3.v4.min.js'></script>
   <script src='../lodash.min.js'></script>
   <style>
+    body {
+      margin: 24px;
+    }
+    #title {
+      margin: 16px 0;
+      color: #333;
+      font-size: 14px;
+      line-height: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+    }
     #main {
       display: inline-block;
       width: auto;
@@ -22,11 +33,14 @@
   </style>
 </head>
 <body>
-  <div id="main"></div>
+  <h1 id='title'></h1>
+  <div id='main'></div>
 </body>
 <script>
 
-var ownId = 8470638;
+var ownId = 8473604;
+var shiftCsv = 'toews-shifts.csv';
+var sitCsv = 'toews-sits.csv';
 var results = [];
 
 //
@@ -34,7 +48,7 @@ var results = [];
 //
 
 var shifts = [];
-d3.csv('bergeron-shifts.csv', (err, csv) => {
+d3.csv(shiftCsv, (err, csv) => {
   shifts = csv.map(d => {
     return {
       game_id: +d.game_id,
@@ -58,7 +72,7 @@ d3.csv('bergeron-shifts.csv', (err, csv) => {
 //
 
 var sits = [];
-d3.csv('bergeron-sits.csv', (err, csv) => {
+d3.csv(sitCsv, (err, csv) => {
   sits = csv.map(d => {
     return {
       game_id: +d.game_id,
@@ -110,6 +124,24 @@ function calculateStats() {
       );
     });
 
+    // Calculate own ev5 toi
+    var ownEv5Toi = 0;
+    var prds = _.uniqBy(ownShifts, "period").map(d => d.period);
+    prds.forEach(prd => {
+      var ownPrdData = ownShifts.find(d => d.period === prd);
+      var ev5PrdData = sits.find(d => d.game_id === gid && d.period === prd && d.sit === 'ev5');
+      if (!ownPrdData || !ev5PrdData) return;
+
+      // Get overlap between own shifts and ev5 times
+      ownPrdData.shifts.forEach(ownRange => {
+        ev5PrdData.shifts.forEach(sitRange => {
+          var overlap = getOverlap(ownRange, sitRange);
+          if (!overlap) return;
+          ownEv5Toi += overlap[1] - overlap[0];
+        });
+      });
+    });
+
     // Calculate ev5 toi against opposing skaters
     oppShifts.forEach(opp => {
       var ownPrdData = ownShifts.find(d => d.period === opp.period);
@@ -148,8 +180,7 @@ function calculateStats() {
       resultEl.datetime = new Date(resultEl.opps[0].datetime);
 
       // Calculate percentage of ev5 time spent against opposing skaters
-      var ownTotal = d3.sum(resultEl.opps, d => d.versus);
-      resultEl.opps.forEach(d => d.own_pct = d.versus / ownTotal);
+      resultEl.opps.forEach(d => d.own_pct = d.versus / ownEv5Toi);
 
       // Store result
       results.push(resultEl);
@@ -169,6 +200,8 @@ function calculateStats() {
 
 function appendCharts() {
 
+  d3.select('#title').text(shiftCsv.substring(0, shiftCsv.indexOf('-')));
+
   // Get maximum matchup toi
   var max = d3.max(results, game =>
     d3.max(game.opps, opp => opp.versus)
@@ -181,7 +214,7 @@ function appendCharts() {
     .range(['#ffffd9', '#edf8b1', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#253494', '#081d58']);
   */
   var colour = d3.scaleThreshold()
-    .domain([0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32])
+    .domain([0.08, 0.16, 0.24, 0.32, 0.40, 0.48, 0.56, 0.64])
     .range(['#ffffd9', '#edf8b1', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#253494', '#081d58']);
 
   // Append columns
