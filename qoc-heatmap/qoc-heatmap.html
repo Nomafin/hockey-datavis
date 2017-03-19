@@ -8,14 +8,25 @@
   <style>
     body {
       margin: 24px;
-    }
-    #title {
-      margin: 16px 0;
       color: #333;
       font-size: 14px;
       line-height: 20px;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       font-weight: 400;
+    }
+    span {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .y-axis-title {
+      display: inline-block;
+      vertical-align: top;
+      margin-left: 8px;
+    }
+    #title {
+      margin: 16px 0 8px 0;
+      text-transform: uppercase;
+      font-weight: 700;
     }
     #main {
       display: inline-block;
@@ -27,20 +38,25 @@
     }
     .cell {
       display: block;
+      box-sizing: border-box;
       width: 12px;
       height: 12px;
     }
   </style>
 </head>
 <body>
-  <h1 id='title'></h1>
-  <div id='main'></div>
+  <span id='title'></span>
+  <span class='x-axis-title'>Game 1, 2, 3, ... →</span>
+  <div>
+   <div id='main'></div>
+   <span class='y-axis-title'>Opposing forwards,<br>ranked by 5v5 TOI,<br>most to least<br>↓</span>
+  </div>
 </body>
 <script>
 
-var ownId = 8473604;
-var shiftCsv = 'toews-shifts.csv';
-var sitCsv = 'toews-sits.csv';
+var ownId = 8470638;
+var shiftCsv = 'bergeron-shifts.csv';
+var sitCsv = 'bergeron-sits.csv';
 var results = [];
 
 //
@@ -117,11 +133,26 @@ function calculateStats() {
       };
     });
 
-    // Calculate total toi for opposing skaters
+    // Calculate total toi (all situations) for opposing skaters
+    // oppShifts.forEach(opp => {
+    //   gResult[opp.player_id].total += opp.shifts.reduce(
+    //     (prdTotal, range) => prdTotal + range[1] - range[0], 0
+    //   );
+    // });
+
+    // Calculate total ev5 toi for opposing skaters
     oppShifts.forEach(opp => {
-      gResult[opp.player_id].total += opp.shifts.reduce(
-        (prdTotal, range) => prdTotal + range[1] - range[0], 0
-      );
+      var ev5PrdData = sits.find(d => d.game_id === gid && d.period === opp.period && d.sit === 'ev5');
+      if (!ev5PrdData) return;
+
+      // Get overlap between opposing skater's shifts and ev5times
+      opp.shifts.forEach(shiftRange => {
+        ev5PrdData.shifts.forEach(sitRange => {
+          var overlap = getOverlap(shiftRange, sitRange);
+          if (!overlap) return;
+          gResult[opp.player_id].total += overlap[1] - overlap[0];
+        });
+      });
     });
 
     // Calculate own ev5 toi
