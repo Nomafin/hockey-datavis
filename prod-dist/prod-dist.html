@@ -67,7 +67,7 @@
 	.sh-line {
 		stroke: #353b3b;
 		stroke-width: 1;
-		shape-rendering: crispEdges;		
+		shape-rendering: crispEdges;
 	}
 	</style>
 </head>
@@ -86,7 +86,7 @@ d3.json("players.json", function(error, json) {
 	var players = json.players;
 
 	// Calculate primary points for all players (all situations)
-	players.forEach(function(d) { 
+	players.forEach(function(d) {
 		//d.p1 = d.stats.all.ig + d.stats.all.ia1;
 		d.p1 = d.stats.all.ig;
 		d.shPct = 100 * d.stats.all.ig / d.stats.all.is;
@@ -96,7 +96,7 @@ d3.json("players.json", function(error, json) {
 	teams = d3.nest()
 		.key(function(d) { return d.teams[d.teams.length - 1]; })
 		.entries(json.players);
-	
+
 	// Sort players by points in all situations
 	// Take the top X players for each team
 	// Store teams' total points
@@ -124,7 +124,7 @@ function appendCards() {
 }
 
 function appendCharts() {
-	
+
 	// svg dimensions
 	var margin = {top: 4, right: 0, bottom: 0, left: 0};
 	var height = 80;
@@ -153,7 +153,7 @@ function appendCharts() {
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	// Append gridlines
-	var gridData = [10, 20, 30];
+	var gridData = [10, 20, 30, 40];
 	var lines = svgs.selectAll(".gridline")
 		.data(gridData)
 		.enter().append("line")
@@ -171,8 +171,10 @@ function appendCharts() {
 			.attr("x", width)
 			.attr("y", function(d) { return y(d); })
 			.text(function(d) {
-				if (d === 30) {
+				if (d === 40) {
 					return d + " goals"
+				} else if (d === 10) {
+					return "";
 				} else {
 					return d;
 				}
@@ -198,7 +200,7 @@ function appendCharts() {
 			})
 			.append("title")
 				.text(function(d) { return d.first + " " + d.last + ": " + d.p1 + " @ " + Math.round(d.shPct) + "%"; });
-	
+
 	// Append dots
 	/*
 	var dots = svgs.selectAll(".dot")
